@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1050743500568",
+    "project_id": "blueapp-81413",
+    "storage_bucket": "blueapp-81413.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1050743500568:android:7dedc94561f1c0abf2b86d",
+        "android_client_info": {
+          "package_name": "com.qanzu.Blue"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0ummq4jXs5zk5tCpjqz-xzJzubcSpLc0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
