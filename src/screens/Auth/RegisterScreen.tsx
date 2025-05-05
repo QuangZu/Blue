@@ -10,8 +10,11 @@ import {
   ScrollView,
   Alert
 } from 'react-native';
+<<<<<<< HEAD
 import auth from '@react-native-firebase/auth';
 import { createUserDocument } from '../../services/firestore';
+=======
+>>>>>>> 40bf5bc448d08d5101b4c3496ba70db3a1a067d3
 
 interface RegisterScreenProps {
   navigation: any;
@@ -24,7 +27,11 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+<<<<<<< HEAD
   const handleRegister = async () => {
+=======
+  const handleRegister = () => {
+>>>>>>> 40bf5bc448d08d5101b4c3496ba70db3a1a067d3
     // Validate inputs
     if (!fullName || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -38,6 +45,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
     setIsLoading(true);
     
+<<<<<<< HEAD
     try {
       // Create user with email and password
       const userCredential = await auth().createUserWithEmailAndPassword(email, password);
@@ -77,6 +85,16 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       }
       console.error(error);
     }
+=======
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      // Navigate back to login
+      Alert.alert('Success', 'Registration successful! Please login.', [
+        { text: 'OK', onPress: () => navigation.navigate('Login') }
+      ]);
+    }, 1500);
+>>>>>>> 40bf5bc448d08d5101b4c3496ba70db3a1a067d3
   };
 
   return (
