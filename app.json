@@ -1,4 +1,19 @@
 {
   "name": "Blue",
-  "displayName": "Blue"
+  "displayName": "Blue",
+  "extra": {
+    "eas": {
+      "projectId": "b65a3033-c8ee-43d7-9ec2-b62d382536b1"
+    }
+  },
+  "expo": {
+    "android": {
+      "package": "com.qanzu.blue"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b65a3033-c8ee-43d7-9ec2-b62d382536b1"
+      }
+    }
+  }
 }
