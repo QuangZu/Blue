@@ -10,11 +10,6 @@ import {
   ScrollView,
   Alert
 } from 'react-native';
-<<<<<<< HEAD
-import auth from '@react-native-firebase/auth';
-import { createUserDocument } from '../../services/firestore';
-=======
->>>>>>> 40bf5bc448d08d5101b4c3496ba70db3a1a067d3
 
 interface RegisterScreenProps {
   navigation: any;
@@ -27,11 +22,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-<<<<<<< HEAD
-  const handleRegister = async () => {
-=======
   const handleRegister = () => {
->>>>>>> 40bf5bc448d08d5101b4c3496ba70db3a1a067d3
     // Validate inputs
     if (!fullName || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -45,47 +36,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
     setIsLoading(true);
     
-<<<<<<< HEAD
-    try {
-      // Create user with email and password
-      const userCredential = await auth().createUserWithEmailAndPassword(email, password);
-      const user = userCredential.user;
-      
-      // Store additional user data in Firestore
-      const userData = {
-        fullName,
-        email,
-        createdAt: new Date().toISOString(),
-      };
-      
-      const result = await createUserDocument(user.uid, userData);
-      
-      setIsLoading(false);
-      
-      if (result.success) {
-        // Navigate back to login
-        Alert.alert('Success', 'Registration successful! Please login.', [
-          { text: 'OK', onPress: () => navigation.navigate('Login') }
-        ]);
-      } else {
-        throw new Error('Failed to create user document');
-      }
-    } catch (error) {
-      setIsLoading(false);
-      
-      // Handle specific error codes
-      if ((error as { code: string }).code === 'auth/email-already-in-use') {
-        Alert.alert('Error', 'Email address is already in use');
-      } else if ((error as { code: string }).code === 'auth/invalid-email') {
-        Alert.alert('Error', 'Invalid email address format');
-      } else if ((error as { code: string }).code === 'auth/weak-password') {
-        Alert.alert('Error', 'Password is too weak');
-      } else {
-        Alert.alert('Error', 'Registration failed: ' + (error as { message: string }).message);
-      }
-      console.error(error);
-    }
-=======
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
@@ -94,7 +44,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
         { text: 'OK', onPress: () => navigation.navigate('Login') }
       ]);
     }, 1500);
->>>>>>> 40bf5bc448d08d5101b4c3496ba70db3a1a067d3
   };
 
   return (

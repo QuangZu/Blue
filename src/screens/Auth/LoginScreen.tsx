@@ -11,10 +11,6 @@ import {
   ScrollView,
   Alert
 } from 'react-native';
-<<<<<<< HEAD
-import auth from '@react-native-firebase/auth';
-=======
->>>>>>> 40bf5bc448d08d5101b4c3496ba70db3a1a067d3
 
 interface LoginScreenProps {
   navigation: any;
@@ -25,11 +21,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-<<<<<<< HEAD
-  const handleLogin = async () => {
-=======
   const handleLogin = () => {
->>>>>>> 40bf5bc448d08d5101b4c3496ba70db3a1a067d3
     // Validate inputs
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -38,28 +30,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
     setIsLoading(true);
     
-<<<<<<< HEAD
-    try {
-      // Use Firebase authentication
-      const userCredential = await auth().signInWithEmailAndPassword(email, password);
-      setIsLoading(false);
-      
-      // Navigate to main app
-      Alert.alert('Success', 'Login successful!');
-      navigation.navigate('MainScreen');
-    } catch (error) {
-      setIsLoading(false);
-      // Handle specific error codes
-      if ((error as { code: string }).code === 'auth/user-not-found' || (error as { code: string }).code === 'auth/wrong-password') {
-        Alert.alert('Error', 'Invalid email or password');
-      } else if ((error as { code: string }).code === 'auth/invalid-email') {
-        Alert.alert('Error', 'Invalid email format');
-      } else {
-        Alert.alert('Error', 'Login failed: ' + (error as { message: string }).message);
-      }
-      console.error(error);
-    }
-=======
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
@@ -67,7 +37,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       // This would normally check credentials with a backend
       Alert.alert('Success', 'Login successful!');
     }, 1500);
->>>>>>> 40bf5bc448d08d5101b4c3496ba70db3a1a067d3
   };
 
   return (

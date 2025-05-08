@@ -1,29 +1,14 @@
-<<<<<<< HEAD
-import { Text, View } from "react-native";
-
-export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
-}
-=======
 import { Text, View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import CandlestickBackground from "../src/components/CandlestickBackground";
 
 export default function Index() {
   const router = useRouter();
 
   return (
     <View style={styles.container}>
+      <CandlestickBackground opacity={0.08} />
       <StatusBar style="dark" />
       
       <View style={styles.header}>
@@ -177,4 +162,3 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
->>>>>>> 40bf5bc448d08d5101b4c3496ba70db3a1a067d3
