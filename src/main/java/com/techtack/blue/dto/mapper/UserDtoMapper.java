@@ -16,7 +16,6 @@ public class UserDtoMapper {
         userDto.setLocation(user.getLocation());
         userDto.setBirthDate(user.getBirthDate());
         userDto.setLogin_with_google(user.isLogin_with_google());
-        userDto.setLogin_with_google(user.isLogin_with_facebook());
 
         return userDto;
     }

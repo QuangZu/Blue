@@ -33,21 +33,6 @@ public class User {
     private LocalDateTime verificationStartTime;
     private LocalDateTime verificationEndTime;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Twit> twit = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Like> likes = new ArrayList<>();
-
-    @JsonIgnore
-    @ManyToMany
-    private List<User>followers = new ArrayList<>();
-
-    @JsonIgnore
-    @ManyToMany
-    private List<User>followings = new ArrayList<>();
-
     public User(Long id, String fullName, String location, String birthDate, String email, String password, String mobile, String image, boolean req_user, boolean login_with_google, boolean login_with_facebook) {
         this.id = id;
         this.fullName = fullName;
