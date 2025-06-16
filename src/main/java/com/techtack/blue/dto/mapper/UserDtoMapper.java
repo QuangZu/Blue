@@ -27,6 +27,7 @@ public class UserDtoMapper {
             userDto.setId(user.getId());
             userDto.setEmail(user.getEmail());
             userDto.setFullName(user.getFullName());
+            userDto.setMobile(user.getMobile());
             userDto.setIdentification_card(user.getIdentification_card());
             userDtos.add(userDto);
         }

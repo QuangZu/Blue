@@ -25,8 +25,8 @@ public class AppConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/h2-console/**").permitAll() // Allow H2 console access
-                .requestMatchers("/auth/**").permitAll() // Allow authentication endpoints
+                .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
             )

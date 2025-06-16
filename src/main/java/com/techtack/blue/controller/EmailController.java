@@ -6,6 +6,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
 @RestController
 public class EmailController {
 
@@ -25,6 +28,12 @@ public class EmailController {
             helper.setTo("minhquangvuxd@gmail.com");
             helper.setSubject("Simple test email from Me");
             helper.setText("Please find the attached documents below");
+
+            try(var inputStream = Objects.requireNonNull(EmailController.class.getResourceAsStream("/templates/email.html"))){
+                helper.setText(
+                        new String(inputStream.readAllBytes(), StandardCharsets.UTF_8), true
+                );
+            }
 
             mailSender.send(message);
             return "success";

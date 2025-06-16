@@ -57,12 +57,13 @@ public class AuthController {
         newUser.setVerificationStartTime(LocalDateTime.now());
         newUser.setVerificationEndTime(LocalDateTime.now().plusDays(1));
         
-        User savedUser = userRepository.save(newUser);
-        
-        Authentication authentication = new UsernamePasswordAuthenticationToken(savedUser.getEmail(), savedUser.getPassword());
+        Authentication authentication = new UsernamePasswordAuthenticationToken(newUser.getEmail(), newUser.getPassword());
         SecurityContextHolder.getContext().setAuthentication(authentication);
         
         String token = jwtProvider.generateToken(authentication);
+        newUser.setToken(token);  // Store the token
+        
+        User savedUser = userRepository.save(newUser);
         
         AuthResponse authResponse = new AuthResponse();
         authResponse.setJwt(token);
@@ -82,6 +83,8 @@ public class AuthController {
         String token = jwtProvider.generateToken(authentication);
         
         User loggedInUser = userRepository.findByEmail(email);
+        loggedInUser.setToken(token);  // Store the token
+        userRepository.save(loggedInUser);
         
         AuthResponse authResponse = new AuthResponse();
         authResponse.setJwt(token);
@@ -116,6 +119,7 @@ public class AuthController {
         userRepository.save(user);
         
         AuthResponse response = new AuthResponse();
+        response.setJwt(user.getToken());
         response.setMessage("Email verified successfully");
         
         return new ResponseEntity<>(response, HttpStatus.OK);

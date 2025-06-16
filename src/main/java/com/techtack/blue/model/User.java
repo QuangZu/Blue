@@ -26,6 +26,7 @@ public class User {
     private boolean verified;
     private LocalDateTime verificationStartTime;
     private LocalDateTime verificationEndTime;
+    private String token;
 
     public User(Long id, String fullName, String location, String birthDate, String email, String password, String mobile, String identification_card, boolean req_user, boolean login_with_google, boolean login_with_facebook) {
         this.id = id;
@@ -34,6 +35,7 @@ public class User {
         this.birthDate = birthDate;
         this.email = email;
         this.password = password;
+        this.mobile = mobile;
         this.identification_card = identification_card;
         this.req_user = req_user;
     }
@@ -143,5 +145,13 @@ public class User {
 
     public void setVerificationEndTime(LocalDateTime verificationEndTime) {
         this.verificationEndTime = verificationEndTime;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }
