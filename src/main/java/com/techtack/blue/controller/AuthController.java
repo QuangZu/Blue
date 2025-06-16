@@ -2,10 +2,14 @@ package com.techtack.blue.controller;
 
 import com.techtack.blue.config.JwtProvider;
 import com.techtack.blue.exception.UserException;
+import com.techtack.blue.model.SecureToken;
 import com.techtack.blue.model.User;
 import com.techtack.blue.repository.UserRepository;
 import com.techtack.blue.response.AuthResponse;
 import com.techtack.blue.service.CustomUserDetailsServiceImplementation;
+import com.techtack.blue.service.EmailService;
+import com.techtack.blue.service.SecureTokenService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +40,12 @@ public class AuthController {
     @Autowired
     private CustomUserDetailsServiceImplementation customUserDetails;
 
+    @Autowired
+    private SecureTokenService secureTokenService;
+
+    @Autowired
+    private EmailService emailService;
+
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> registerUser(@RequestBody User user) throws UserException {
         
@@ -57,19 +67,43 @@ public class AuthController {
         newUser.setVerificationStartTime(LocalDateTime.now());
         newUser.setVerificationEndTime(LocalDateTime.now().plusDays(1));
         
-        Authentication authentication = new UsernamePasswordAuthenticationToken(newUser.getEmail(), newUser.getPassword());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        
-        String token = jwtProvider.generateToken(authentication);
-        newUser.setToken(token);  // Store the token
-        
+        // Save the user first to get an ID
         User savedUser = userRepository.save(newUser);
         
+        // Create secure token
+        SecureToken secureToken = secureTokenService.createSecureToken(savedUser);
+        
+        // Build verification URL
+        String verificationUrl = "http://localhost:8080/auth/verify?token=" + secureToken.getToken();
+        
+        // Send verification email
+        emailService.sendVerificationEmail(savedUser.getEmail(), verificationUrl);
+        
         AuthResponse authResponse = new AuthResponse();
-        authResponse.setJwt(token);
-        authResponse.setMessage("Register Success. Please verify your email.");
+        authResponse.setMessage("Registration successful. Please check your email to verify your account.");
         
         return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyAccount(@RequestParam String token) {
+        SecureToken secureToken = secureTokenService.findByToken(token);
+        
+        if (secureToken == null) {
+            return ResponseEntity.badRequest().body("Invalid verification token");
+        }
+        
+        if (!secureTokenService.isTokenValid(secureToken)) {
+            return ResponseEntity.badRequest().body("Verification token has expired");
+        }
+        
+        User user = secureToken.getUser();
+        user.setVerified(true);
+        userRepository.save(user);
+        
+        secureTokenService.removeToken(secureToken);
+        
+        return ResponseEntity.ok("Email verified successfully. You can now login.");
     }
     
     @PostMapping("/signin")
