@@ -1,13 +1,9 @@
 package com.techtack.blue.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.techtack.blue.dto.UserDto;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -24,27 +20,22 @@ public class User {
     private String email;
     private String password;
     private String mobile;
-    private String image;
+    private String identification_card;
     private double accountBalance;
     private boolean req_user;
-    private boolean login_with_google;
-    private boolean login_with_facebook;
     private boolean verified;
     private LocalDateTime verificationStartTime;
     private LocalDateTime verificationEndTime;
 
-    public User(Long id, String fullName, String location, String birthDate, String email, String password, String mobile, String image, boolean req_user, boolean login_with_google, boolean login_with_facebook) {
+    public User(Long id, String fullName, String location, String birthDate, String email, String password, String mobile, String identification_card, boolean req_user, boolean login_with_google, boolean login_with_facebook) {
         this.id = id;
         this.fullName = fullName;
         this.location = location;
         this.birthDate = birthDate;
         this.email = email;
         this.password = password;
-        this.mobile = mobile;
-        this.image = image;
+        this.identification_card = identification_card;
         this.req_user = req_user;
-        this.login_with_google = login_with_google;
-        this.login_with_facebook = login_with_facebook;
     }
 
     public User() {
@@ -106,12 +97,20 @@ public class User {
         this.mobile = mobile;
     }
 
-    public String getImage() {
-        return image;
+    public String getIdentification_card() {
+        return identification_card;
     }
 
-    public void setImage(String image) {
-        this.image = image;
+    public void setIdentification_card(String identification_card) {
+        this.identification_card = identification_card;
+    }
+
+    public double getAccountBalance() {
+        return accountBalance;
+    }
+
+    public void setAccountBalance(double accountBalance) {
+        this.accountBalance = accountBalance;
     }
 
     public boolean isReq_user() {
@@ -120,34 +119,6 @@ public class User {
 
     public void setReq_user(boolean req_user) {
         this.req_user = req_user;
-    }
-
-    public boolean isLogin_with_google() {
-        return login_with_google;
-    }
-
-    public void setLogin_with_google(boolean login_with_google) {
-        this.login_with_google = login_with_google;
-    }
-
-    public boolean isLogin_with_facebook() {
-        return login_with_facebook;
-    }
-
-    public void setLogin_with_facebook(boolean login_with_facebook) {
-        this.login_with_facebook = login_with_facebook;
-    }
-
-    public boolean getLogin_with_google() {
-        return login_with_google;
-    }
-    
-    public double getAccountBalance() {
-        return accountBalance;
-    }
-
-    public void setAccountBalance(double accountBalance) {
-        this.accountBalance = accountBalance;
     }
 
     public boolean isVerified() {

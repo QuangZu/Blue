@@ -12,10 +12,9 @@ public class UserDtoMapper {
         userDto.setId(user.getId());
         userDto.setEmail(user.getEmail());
         userDto.setFullName(user.getFullName());
-        userDto.setImage(user.getImage());
+        userDto.setIdentification_card(user.getIdentification_card());
         userDto.setLocation(user.getLocation());
         userDto.setBirthDate(user.getBirthDate());
-        userDto.setLogin_with_google(user.getLogin_with_google());
 
         return userDto;
     }
@@ -28,7 +27,7 @@ public class UserDtoMapper {
             userDto.setId(user.getId());
             userDto.setEmail(user.getEmail());
             userDto.setFullName(user.getFullName());
-            userDto.setImage(user.getImage());
+            userDto.setIdentification_card(user.getIdentification_card());
             userDtos.add(userDto);
         }
 
