@@ -1,0 +1,72 @@
+services:
+  app:
+    image: quangzu/blue:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blue_app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dpg-d1n3iq6r433s73ba8kig-a.oregon-postgres.render.com:5432/blue_4pj5
+      - SPRING_DATASOURCE_USERNAME=blue_4pj5_user
+      - SPRING_DATASOURCE_PASSWORD=3u9ogl5kJ2zmyQnIFOw4S82mAr50ma3a
+      - ALPHAVANTAGE_API_KEY=${ALPHAVANTAGE_API_KEY:-TW10G2S77NID2ZCA}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-default}
+      - JPA_DDL_AUTO=${JPA_DDL_AUTO:-update}
+      - JPA_SHOW_SQL=${JPA_SHOW_SQL:-false}
+    depends_on:
+      - postgres
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  postgres:
+    container_name: postgres_blue
+    image: postgres
+    environment:
+      POSTGRES_USER: blue_4pj5_user
+      POSTGRES_PASSWORD: 3u9ogl5kJ2zmyQnIFOw4S82mAr50ma3a
+      POSTGRES_DB: blue_4pj5
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: pgadmin_blue
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  # RabbitMQ service commented out since RabbitMQ functionality is disabled
+  # rabbitmq:
+  #   image: rabbitmq:4-management
+  #   container_name: rabbitmq_blue
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   networks:
+  #     - postgres
+  #   restart: unless-stopped
+
+networks:
+  postgres:
+    driver: bridge
+
+volumes:
+  postgres:
+  pgadmin:
