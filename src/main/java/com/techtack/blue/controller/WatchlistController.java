@@ -1,14 +1,23 @@
 package com.techtack.blue.controller;
 
-import com.techtack.blue.dto.WatchlistDto;
-import com.techtack.blue.dto.WatchlistItemDto;
-import com.techtack.blue.exception.UserException;
-import com.techtack.blue.service.WatchlistService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.techtack.blue.dto.StockDto;
+import com.techtack.blue.dto.WatchlistDto;
+import com.techtack.blue.exception.UserException;
+import com.techtack.blue.service.WatchlistService;
 
 @RestController
 @RequestMapping("/watchlists")
@@ -54,26 +63,26 @@ public class WatchlistController {
     }
 
     @PostMapping("/{watchlistId}/stocks")
-    public ResponseEntity<WatchlistItemDto> addStockToWatchlist(
+    public ResponseEntity<WatchlistDto> addStockToWatchlist(
             @PathVariable Long watchlistId,
             @RequestParam Long stockId,
             @RequestParam Long userId) {
-        return ResponseEntity.ok(watchlistService.addStockToWatchlist(watchlistId, stockId, userId));
+        return ResponseEntity.ok(watchlistService.addStockToWatchlistById(watchlistId, stockId, userId));
     }
 
-    @DeleteMapping("/{watchlistId}/stocks/{stockItemId}")
+    @DeleteMapping("/{watchlistId}/stocks/{stockId}")
     public ResponseEntity<Void> removeStockFromWatchlist(
             @PathVariable Long watchlistId,
-            @PathVariable Long stockItemId,
+            @PathVariable Long stockId,
             @RequestParam Long userId) {
-        watchlistService.removeStockFromWatchlist(watchlistId, stockItemId, userId);
+        watchlistService.removeStockFromWatchlistById(watchlistId, stockId, userId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{watchlistId}/stocks")
-    public ResponseEntity<List<WatchlistItemDto>> getWatchlistStocks(
+    public ResponseEntity<List<StockDto>> getWatchlistStocks(
             @PathVariable Long watchlistId,
             @RequestParam Long userId) {
-        return ResponseEntity.ok(watchlistService.getWatchlistItems(watchlistId, userId));
+        return ResponseEntity.ok(watchlistService.getWatchlistStocks(watchlistId, userId));
     }
 }

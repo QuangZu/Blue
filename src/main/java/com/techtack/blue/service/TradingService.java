@@ -46,55 +46,42 @@ public class TradingService {
 
     @Transactional
     public Order placeOrder(Order order, Long userId) {
-        // Validate user exists
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         
-        // Check if stock exists in database, if not fetch from API
         Stock stock = stockRepository.findBySymbol(order.getSymbol());
         if (stock == null) {
-            // Stock not in database, fetch from API and save
             StockDto stockDto = stockService.getStockBySymbol(order.getSymbol());
             if (stockDto == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Stock not found with symbol: " + order.getSymbol());
             }
-            // Re-fetch the stock after it's been saved by the service
             stock = stockRepository.findBySymbol(order.getSymbol());
             if (stock == null) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save stock data");
             }
         }
         
-        // Set relationships
         order.setUser(user);
         order.setStock(stock);
         order.setSymbol(stock.getSymbol());
         order.setEntryDate(LocalDate.now());
         order.setEntryTime(LocalTime.now());
         
-        // Validate order type specific fields
         validateOrderTypeFields(order);
         
-        // For buy orders, we'll need to check user's buying power
         if (order.getOrderSide() == OrderSide.BUY) {
             double totalCost = order.getPrice() * order.getQuantity();
-            // Assuming user has a buyingPower field now
             if (user.getBuyingPower() < totalCost) {
                 throw new InsufficientFundsException("Insufficient buying power");
             }
-            // Deduct from user's buying power
             user.setBuyingPower(user.getBuyingPower() - totalCost);
             userRepository.save(user);
         }
         
-        // Set buying power and max quantity for reference
         order.setBuyingPower(user.getBuyingPower());
         order.setMaxQuantity(calculateMaxQuantity(user.getBuyingPower(), order.getPrice()));
         
-        // Save the order
         Order savedOrder = orderRepository.save(order);
-        
-        // Create a Trading record for the order
         createTradingFromOrder(savedOrder);
         
         return savedOrder;
@@ -102,15 +89,30 @@ public class TradingService {
     
     private void validateOrderTypeFields(Order order) {
         switch (order.getOrderType()) {
+            case STOP:
+                if (order.getTriggerPrice() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trigger price is required for Stop orders");
+                }
+                break;
             case STOP_LIMIT:
                 if (order.getTriggerPrice() == null) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trigger price is required for Stop Limit orders");
                 }
+                if (order.getPrice() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limit price is required for Stop Limit orders");
+                }
                 break;
             case TRAILING_STOP:
+                if (order.getTrailingAmount() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trailing amount is required for Trailing Stop orders");
+                }
+                break;
             case TRAILING_STOP_LIMIT:
                 if (order.getTrailingAmount() == null) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trailing amount is required for Trailing Stop/Limit orders");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trailing amount is required for Trailing Stop Limit orders");
+                }
+                if (order.getPrice() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limit price is required for Trailing Stop Limit orders");
                 }
                 break;
             case OCO:
@@ -128,6 +130,10 @@ public class TradingService {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expiry date is required for GTD orders");
                 }
                 break;
+            case NORMAL:
+                break;
+            default:
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid order type");
         }
     }
     
@@ -163,7 +169,6 @@ public class TradingService {
         tradingRepository.save(trading);
     }
     
-    // Get all orders for a user
     public List<Order> getUserOrders(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -175,17 +180,14 @@ public class TradingService {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
         
-        // Verify the order belongs to the user
         if (!order.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access to order denied");
         }
         
-        // Only allow cancellation of pending orders
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot cancel a " + order.getStatus() + " order");
         }
         
-        // Refund buying power for buy orders
         if (order.getOrderSide() == OrderSide.BUY) {
             User user = order.getUser();
             user.setBuyingPower(user.getBuyingPower() + (order.getPrice() * order.getQuantity()));
@@ -195,7 +197,6 @@ public class TradingService {
         order.setStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
         
-        // Update the Trading record status
         Optional<Trading> tradingOptional = tradingRepository.findByOrderId(orderId);
         if (tradingOptional.isPresent()) {
             Trading trading = tradingOptional.get();
@@ -216,121 +217,15 @@ public class TradingService {
         return orderRepository.findByUserAndStatus(user, status);
     }
     
-    // Get orders by type
     public List<Order> getOrdersByType(Long userId, OrderType orderType) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return orderRepository.findByUserAndOrderType(user, orderType);
     }
     
-    // Get orders by status and type
     public List<Order> getOrdersByStatusAndType(Long userId, OrderStatus status, OrderType orderType) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return orderRepository.findByUserAndStatusAndOrderType(user, status, orderType);
-    }
-    
-    // Place a Stop order
-    @Transactional
-    public Order placeStopOrder(Order order, Long userId) {
-        order.setOrderType(OrderType.STOP);
-        
-        // Validate trigger price is set
-        if (order.getTriggerPrice() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trigger price is required for Stop orders");
-        }
-        
-        return placeOrder(order, userId);
-    }
-    
-    // Place a Stop Limit order
-    @Transactional
-    public Order placeStopLimitOrder(Order order, Long userId) {
-        order.setOrderType(OrderType.STOP_LIMIT);
-        
-        // Validate trigger price and limit price are set
-        if (order.getTriggerPrice() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trigger price is required for Stop Limit orders");
-        }
-        if (order.getPrice() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limit price is required for Stop Limit orders");
-        }
-        
-        return placeOrder(order, userId);
-    }
-    
-    // Place a Trailing Stop order
-    @Transactional
-    public Order placeTrailingStopOrder(Order order, Long userId) {
-        order.setOrderType(OrderType.TRAILING_STOP);
-        
-        // Validate trailing amount is set
-        if (order.getTrailingAmount() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trailing amount is required for Trailing Stop orders");
-        }
-        
-        return placeOrder(order, userId);
-    }
-    
-    // Place a Trailing Stop Limit order
-    @Transactional
-    public Order placeTrailingStopLimitOrder(Order order, Long userId) {
-        order.setOrderType(OrderType.TRAILING_STOP_LIMIT);
-        
-        // Validate trailing amount and limit price are set
-        if (order.getTrailingAmount() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trailing amount is required for Trailing Stop Limit orders");
-        }
-        if (order.getPrice() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limit price is required for Trailing Stop Limit orders");
-        }
-        
-        return placeOrder(order, userId);
-    }
-    
-    // Place an OCO (One-Cancels-Other) order
-    @Transactional
-    public Order placeOCOOrder(Order order, Long userId) {
-        order.setOrderType(OrderType.OCO);
-        
-        // Validate take profit and cut loss prices are set
-        if (order.getTakeProfitPrice() == null || order.getCutLossPrice() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Take profit and cut loss prices are required for OCO orders");
-        }
-        
-        return placeOrder(order, userId);
-    }
-    
-    // Place a Stop Loss/Take Profit order
-    @Transactional
-    public Order placeStopLossTakeProfitOrder(Order order, Long userId) {
-        order.setOrderType(OrderType.STOP_LOSS_TAKE_PROFIT);
-        
-        // Validate take profit and cut loss prices are set
-        if (order.getTakeProfitPrice() == null || order.getCutLossPrice() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Take profit and cut loss prices are required for Stop Loss/Take Profit orders");
-        }
-        
-        return placeOrder(order, userId);
-    }
-    
-    // Place a GTD (Good Till Date) order
-    @Transactional
-    public Order placeGTDOrder(Order order, Long userId) {
-        order.setOrderType(OrderType.GTD);
-        
-        // Validate expiry date is set
-        if (order.getExpiryDate() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expiry date is required for GTD orders");
-        }
-        
-        return placeOrder(order, userId);
-    }
-
-    @Transactional
-    public Order placeNormalOrder(Order order, Long userId) {
-        order.setOrderType(OrderType.NORMAL);
-        
-        return placeOrder(order, userId);
     }
 }

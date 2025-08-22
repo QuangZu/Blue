@@ -30,25 +30,15 @@ public class UserStockService {
     @Autowired
     private StockService stockService;
 
-    public List<UserStockDto> getUserStocks(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-        
+    public List<UserStockDto> getUserStocks(Long userId) throws UserException{
+        User user = validateAndGetUser(userId);
         List<UserStock> userStocks = userStockRepository.findByUser(user);
-        
-        return userStocks.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        return userStocks.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     public UserStockDto buyStock(Long userId, String symbol, int quantity) throws UserException {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-        
-        Stock stock = stockRepository.findBySymbol(symbol);
-        if (stock == null) {
-            throw new RuntimeException("Stock not found with symbol: " + symbol);
-        }
+        User user = validateAndGetUser(userId);
+        Stock stock = validateAndGetStock(symbol);
         
         double totalCost = stock.getPrice() * quantity;
         
@@ -56,47 +46,20 @@ public class UserStockService {
             throw new UserException("Insufficient funds to buy stock");
         }
         
-        // Update user balance
-        user.setAccountBalance(user.getAccountBalance() - totalCost);
-        userRepository.save(user);
+        updateUserBalance(user, -totalCost);
         
-        // Check if user already owns this stock
         UserStock existingUserStock = userStockRepository.findByUserAndStock(user, stock);
         
         if (existingUserStock != null) {
-            // Update existing position
-            double newTotalCost = (existingUserStock.getPurchasePrice() * existingUserStock.getQuantity()) + totalCost;
-            int newTotalQuantity = existingUserStock.getQuantity() + quantity;
-            double newAveragePrice = newTotalCost / newTotalQuantity;
-            
-            existingUserStock.setQuantity(newTotalQuantity);
-            existingUserStock.setPurchasePrice(newAveragePrice);
-            userStockRepository.save(existingUserStock);
-            
-            return convertToDto(existingUserStock);
+            return updateExistingPosition(existingUserStock, quantity, totalCost);
         } else {
-            // Create new position
-            UserStock userStock = new UserStock();
-            userStock.setUser(user);
-            userStock.setStock(stock);
-            userStock.setQuantity(quantity);
-            userStock.setPurchasePrice(stock.getPrice());
-            userStock.setPurchaseDate(LocalDateTime.now());
-            
-            userStockRepository.save(userStock);
-            
-            return convertToDto(userStock);
+            return createNewPosition(user, stock, quantity);
         }
     }
 
     public UserStockDto sellStock(Long userId, String symbol, int quantity) throws UserException {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-        
-        Stock stock = stockRepository.findBySymbol(symbol);
-        if (stock == null) {
-            throw new RuntimeException("Stock not found with symbol: " + symbol);
-        }
+        User user = validateAndGetUser(userId);
+        Stock stock = validateAndGetStock(symbol);
         
         UserStock userStock = userStockRepository.findByUserAndStock(user, stock);
         
@@ -105,23 +68,58 @@ public class UserStockService {
         }
         
         double saleProceeds = stock.getPrice() * quantity;
+        updateUserBalance(user, saleProceeds);
         
-        // Update user balance
-        user.setAccountBalance(user.getAccountBalance() + saleProceeds);
-        userRepository.save(user);
-        
-        // Update user stock position
         if (userStock.getQuantity() == quantity) {
-            // Sell all shares
             userStockRepository.delete(userStock);
             return null;
         } else {
-            // Sell partial position
             userStock.setQuantity(userStock.getQuantity() - quantity);
             userStockRepository.save(userStock);
-            
             return convertToDto(userStock);
         }
+    }
+
+    private User validateAndGetUser(Long userId) throws UserException{
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserException("User not found with id: " + userId));
+    }
+
+    private Stock validateAndGetStock(String symbol) throws UserException{
+        Stock stock = stockRepository.findBySymbol(symbol);
+        if (stock == null) {
+            throw new UserException("Stock not found with symbol: " + symbol);
+        }
+        return stock;
+    }
+
+    private void updateUserBalance(User user, double amount) {
+        user.setAccountBalance(user.getAccountBalance() + amount);
+        userRepository.save(user);
+    }
+
+    private UserStockDto updateExistingPosition(UserStock existingUserStock, int quantity, double totalCost) {
+        double newTotalCost = (existingUserStock.getPurchasePrice() * existingUserStock.getQuantity()) + totalCost;
+        int newTotalQuantity = existingUserStock.getQuantity() + quantity;
+        double newAveragePrice = newTotalCost / newTotalQuantity;
+        
+        existingUserStock.setQuantity(newTotalQuantity);
+        existingUserStock.setPurchasePrice(newAveragePrice);
+        userStockRepository.save(existingUserStock);
+        
+        return convertToDto(existingUserStock);
+    }
+
+    private UserStockDto createNewPosition(User user, Stock stock, int quantity) {
+        UserStock userStock = new UserStock();
+        userStock.setUser(user);
+        userStock.setStock(stock);
+        userStock.setQuantity(quantity);
+        userStock.setPurchasePrice(stock.getPrice());
+        userStock.setPurchaseDate(LocalDateTime.now());
+        
+        userStockRepository.save(userStock);
+        return convertToDto(userStock);
     }
 
     private UserStockDto convertToDto(UserStock userStock) {
@@ -133,16 +131,14 @@ public class UserStockService {
         dto.setPurchasePrice(userStock.getPurchasePrice());
         dto.setPurchaseDate(userStock.getPurchaseDate());
         
-        // Calculate current value and profit/loss
         double currentPrice = userStock.getStock().getPrice();
         double currentValue = currentPrice * userStock.getQuantity();
         double purchaseValue = userStock.getPurchasePrice() * userStock.getQuantity();
         double profitLoss = currentValue - purchaseValue;
-        double profitLossPercent = (profitLoss / purchaseValue) * 100;
         
         dto.setCurrentValue(currentValue);
         dto.setProfitLoss(profitLoss);
-        dto.setProfitLossPercent(profitLossPercent);
+        dto.setProfitLossPercent(purchaseValue != 0 ? (profitLoss / purchaseValue) * 100 : 0);
         
         return dto;
     }

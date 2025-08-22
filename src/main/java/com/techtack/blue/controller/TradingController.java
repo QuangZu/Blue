@@ -37,97 +37,60 @@ public class TradingController {
         if (order.getOrderType() == null) {
             order.setOrderType(OrderType.NORMAL);
         }
-
-        Order placedOrder;
-        switch (order.getOrderType()) {
-            case NORMAL:
-                placedOrder = tradingService.placeNormalOrder(order, userId);
-                break;
-            case STOP:
-                placedOrder = tradingService.placeStopOrder(order, userId);
-                break;
-            case STOP_LIMIT:
-                placedOrder = tradingService.placeStopLimitOrder(order, userId);
-                break;
-            case TRAILING_STOP:
-                placedOrder = tradingService.placeTrailingStopOrder(order, userId);
-                break;
-            case TRAILING_STOP_LIMIT:
-                placedOrder = tradingService.placeTrailingStopLimitOrder(order, userId);
-                break;
-            case OCO:
-                placedOrder = tradingService.placeOCOOrder(order, userId);
-                break;
-            case STOP_LOSS_TAKE_PROFIT:
-                placedOrder = tradingService.placeStopLossTakeProfitOrder(order, userId);
-                break;
-            case GTD:
-                placedOrder = tradingService.placeGTDOrder(order, userId);
-                break;
-            default:
-                placedOrder = tradingService.placeOrder(order, userId);
-        }
+        Order placedOrder = tradingService.placeOrder(order, userId);
         return ResponseEntity.ok(placedOrder);
     }
 
-    @PostMapping("/orders/normal")
-    public ResponseEntity<Order> placeNormalOrder(@RequestBody Order order, @RequestParam("userId") Long userId) {
-        return ResponseEntity.ok(tradingService.placeNormalOrder(order, userId));
+    @PostMapping("/orders/{orderType}")
+    public ResponseEntity<Order> placeOrderByType(
+            @RequestBody Order order, 
+            @RequestParam("userId") Long userId,
+            @PathVariable String orderType) {
+        try {
+            OrderType type = OrderType.valueOf(orderType.toUpperCase().replace("-", "_"));
+            order.setOrderType(type);
+            Order placedOrder = tradingService.placeOrder(order, userId);
+            return ResponseEntity.ok(placedOrder);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
-    
-    @PostMapping("/orders/gtd")
-    public ResponseEntity<Order> placeGTDOrder(@RequestBody Order order, @RequestParam("userId") Long userId) {
-        order.setOrderType(OrderType.GTD);
-        return ResponseEntity.ok(tradingService.placeGTDOrder(order, userId));
+
+    @GetMapping("/orders")
+    public ResponseEntity<List<Order>> getUserOrders(@RequestParam("userId") Long userId) {
+        return ResponseEntity.ok(tradingService.getUserOrders(userId));
     }
-    
-    @PostMapping("/orders/stop")
-    public ResponseEntity<Order> placeStopOrder(@RequestBody Order order, @RequestParam("userId") Long userId) {
-        order.setOrderType(OrderType.STOP);
-        return ResponseEntity.ok(tradingService.placeStopOrder(order, userId));
+
+    @GetMapping("/orders/open")
+    public ResponseEntity<List<Order>> getOpenOrders(@RequestParam("userId") Long userId) {
+        return ResponseEntity.ok(tradingService.getOrdersByStatus(userId, OrderStatus.PENDING));
     }
-    
-    @PostMapping("/orders/stop-limit")
-    public ResponseEntity<Order> placeStopLimitOrder(@RequestBody Order order, @RequestParam("userId") Long userId) {
-        order.setOrderType(OrderType.STOP_LIMIT);
-        return ResponseEntity.ok(tradingService.placeStopLimitOrder(order, userId));
+
+    @GetMapping("/orders/{orderId}")
+    public ResponseEntity<Order> getOrderById(
+            @RequestParam("userId") Long userId,
+            @PathVariable Long orderId) {
+        return tradingService.getUserOrders(userId).stream()
+                .filter(order -> order.getId().equals(orderId))
+                .findFirst()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
-    
-    @PostMapping("/orders/trailing-stop")
-    public ResponseEntity<Order> placeTrailingStopOrder(@RequestBody Order order, @RequestParam("userId") Long userId) {
-        order.setOrderType(OrderType.TRAILING_STOP);
-        return ResponseEntity.ok(tradingService.placeTrailingStopOrder(order, userId));
-    }
-    
-    @PostMapping("/orders/trailing-stop-limit")
-    public ResponseEntity<Order> placeTrailingStopLimitOrder(@RequestBody Order order, @RequestParam("userId") Long userId) {
-        order.setOrderType(OrderType.TRAILING_STOP_LIMIT);
-        return ResponseEntity.ok(tradingService.placeTrailingStopLimitOrder(order, userId));
-    }
-    
-    @PostMapping("/orders/oco")
-    public ResponseEntity<Order> placeOCOOrder(@RequestBody Order order, @RequestParam("userId") Long userId) {
-        order.setOrderType(OrderType.OCO);
-        return ResponseEntity.ok(tradingService.placeOCOOrder(order, userId));
-    }
-    
-    @PostMapping("/orders/stop-loss-take-profit")
-    public ResponseEntity<Order> placeStopLossTakeProfitOrder(@RequestBody Order order, @RequestParam("userId") Long userId) {
-        order.setOrderType(OrderType.STOP_LOSS_TAKE_PROFIT);
-        return ResponseEntity.ok(tradingService.placeStopLossTakeProfitOrder(order, userId));
+
+    @GetMapping("/orders/status/{status}")
+    public ResponseEntity<List<Order>> getOrdersByStatus(
+            @RequestParam("userId") Long userId,
+            @PathVariable String status) {
+        return getOrdersByEnumValue(userId, status, 
+            s -> tradingService.getOrdersByStatus(userId, OrderStatus.valueOf(s.toUpperCase())));
     }
 
     @GetMapping("/orders/type/{type}")
     public ResponseEntity<List<Order>> getOrdersByType(
             @RequestParam("userId") Long userId,
             @PathVariable String type) {
-        try {
-            OrderType orderType = OrderType.valueOf(type.toUpperCase());
-            List<Order> filteredOrders = tradingService.getOrdersByType(userId, orderType);
-            return ResponseEntity.ok(filteredOrders);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return getOrdersByEnumValue(userId, type,
+            t -> tradingService.getOrdersByType(userId, OrderType.valueOf(t.toUpperCase())));
     }
 
     @GetMapping("/orders/status/{status}/type/{type}")
@@ -145,18 +108,6 @@ public class TradingController {
         }
     }
 
-    @GetMapping("/orders")
-    public ResponseEntity<List<Order>> getUserOrders(
-            @RequestParam("userId") Long userId) {
-        return ResponseEntity.ok(tradingService.getUserOrders(userId));
-    }
-
-    @GetMapping("/orders/open")
-    public ResponseEntity<List<Order>> getOpenOrders(
-            @RequestParam("userId") Long userId) {
-        return ResponseEntity.ok(tradingService.getOrdersByStatus(userId, OrderStatus.PENDING));
-    }
-
     @PostMapping("/orders/{orderId}/cancel")
     public ResponseEntity<Void> cancelOrder(
             @RequestParam("userId") Long userId,
@@ -165,33 +116,6 @@ public class TradingController {
         return ResponseEntity.noContent().build();
     }
 
-    // Get order by ID
-    @GetMapping("/orders/{orderId}")
-    public ResponseEntity<Order> getOrderById(
-            @RequestParam("userId") Long userId,
-            @PathVariable Long orderId) {
-        return tradingService.getUserOrders(userId).stream()
-                .filter(order -> order.getId().equals(orderId))
-                .findFirst()
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-    
-    // Get orders by status
-    @GetMapping("/orders/status/{status}")
-    public ResponseEntity<List<Order>> getOrdersByStatus(
-            @RequestParam("userId") Long userId,
-            @PathVariable String status) {
-        try {
-            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
-            List<Order> filteredOrders = tradingService.getOrdersByStatus(userId, orderStatus);
-            return ResponseEntity.ok(filteredOrders);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-    
-    // Get available order types
     @GetMapping("/order-types")
     public ResponseEntity<List<Map<String, String>>> getOrderTypes() {
         return ResponseEntity.ok(
@@ -203,55 +127,62 @@ public class TradingController {
                 .toList()
         );
     }
-    
-    // Get available order sides (buy/sell)
+
     @GetMapping("/order-sides")
     public ResponseEntity<List<OrderSide>> getOrderSides() {
         return ResponseEntity.ok(Arrays.asList(OrderSide.values()));
     }
-    
-    // Get available order statuses
+
     @GetMapping("/order-statuses")
     public ResponseEntity<List<OrderStatus>> getOrderStatuses() {
         return ResponseEntity.ok(Arrays.asList(OrderStatus.values()));
     }
-    
-    // Get trading records
+
     @GetMapping("/tradings")
-    public ResponseEntity<List<Trading>> getTradingRecords(
-            @RequestParam("accountId") String accountId) {
+    public ResponseEntity<List<Trading>> getTradingRecords(@RequestParam("accountId") String accountId) {
         return ResponseEntity.ok(tradingRepository.findByAccountId(accountId));
     }
-    
-    // Get trading records by symbol
+
     @GetMapping("/tradings/symbol/{symbol}")
     public ResponseEntity<List<Trading>> getTradingRecordsBySymbol(
             @RequestParam("accountId") String accountId,
             @PathVariable String symbol) {
         return ResponseEntity.ok(tradingRepository.findByAccountIdAndSymbol(accountId, symbol));
     }
-    
-    // Get trading records by order type
+
     @GetMapping("/tradings/type/{orderType}")
     public ResponseEntity<List<Trading>> getTradingRecordsByOrderType(
             @RequestParam("accountId") String accountId,
             @PathVariable String orderType) {
-        try {
-            OrderType type = OrderType.valueOf(orderType.toUpperCase());
-            return ResponseEntity.ok(tradingRepository.findByAccountIdAndOrderType(accountId, type));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return getTradingRecordsByEnumValue(accountId, orderType,
+            type -> tradingRepository.findByAccountIdAndOrderType(accountId, OrderType.valueOf(type.toUpperCase())));
     }
-    
-    // Get trading records by status
+
     @GetMapping("/tradings/status/{status}")
     public ResponseEntity<List<Trading>> getTradingRecordsByStatus(
             @RequestParam("accountId") String accountId,
             @PathVariable String status) {
+        return getTradingRecordsByEnumValue(accountId, status,
+            s -> tradingRepository.findByAccountIdAndStatus(accountId, OrderStatus.valueOf(s.toUpperCase())));
+    }
+
+    private ResponseEntity<List<Order>> getOrdersByEnumValue(
+            Long userId, String enumValue, 
+            java.util.function.Function<String, List<Order>> serviceCall) {
         try {
-            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
-            return ResponseEntity.ok(tradingRepository.findByAccountIdAndStatus(accountId, orderStatus));
+            List<Order> orders = serviceCall.apply(enumValue);
+            return ResponseEntity.ok(orders);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    private ResponseEntity<List<Trading>> getTradingRecordsByEnumValue(
+            String accountId, String enumValue,
+            java.util.function.Function<String, List<Trading>> repositoryCall) {
+        try {
+            List<Trading> tradings = repositoryCall.apply(enumValue);
+            return ResponseEntity.ok(tradings);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }

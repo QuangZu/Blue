@@ -1,13 +1,14 @@
 package com.techtack.blue.service;
 
-import com.techtack.blue.dto.StockDto;
-import com.techtack.blue.model.Stock;
-import com.techtack.blue.repository.StockRepository;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.techtack.blue.dto.StockDto;
+import com.techtack.blue.model.Stock;
+import com.techtack.blue.repository.StockRepository;
 
 @Service
 public class StockService {
@@ -34,41 +35,38 @@ public class StockService {
     }
 
     public List<StockDto> getTopTradedStocks() {
-        List<Stock> stocks = stockRepository.findTopTradedStocks();
-        return stocks.stream().map(this::convertToDto).collect(Collectors.toList());
+        return convertToDtoList(stockRepository.findTopTradedStocks());
     }
 
     public List<StockDto> getTopGainers() {
-        List<Stock> stocks = stockRepository.findTopGainers();
-        return stocks.stream().map(this::convertToDto).collect(Collectors.toList());
+        return convertToDtoList(stockRepository.findTopGainers());
     }
 
     public List<StockDto> getTopLosers() {
-        List<Stock> stocks = stockRepository.findTopLosers();
-        return stocks.stream().map(this::convertToDto).collect(Collectors.toList());
+        return convertToDtoList(stockRepository.findTopLosers());
     }
 
     public List<StockDto> searchStocks(String query) {
-        List<Stock> stocks = alphaVantageService.searchStocks(query);
-        return stocks.stream().map(this::convertToDto).collect(Collectors.toList());
+        return convertToDtoList(alphaVantageService.searchStocks(query));
     }
     
     public List<StockDto> getStocksByIndustry(String industry) {
-        List<Stock> stocks = stockRepository.findByIndustry(industry);
-        return stocks.stream().map(this::convertToDto).collect(Collectors.toList());
+        return convertToDtoList(stockRepository.findByIndustry(industry));
     }
     
     public List<StockDto> getStocksByMarketCapRange(double minMarketCap, double maxMarketCap) {
-        List<Stock> stocks = stockRepository.findByMarketCapRange(minMarketCap, maxMarketCap);
-        return stocks.stream().map(this::convertToDto).collect(Collectors.toList());
+        return convertToDtoList(stockRepository.findByMarketCapRange(minMarketCap, maxMarketCap));
     }
 
     public List<StockDto> getAllStocks() {
-        List<Stock> stocks = stockRepository.findAll();
+        return convertToDtoList(stockRepository.findAll());
+    }
+
+    private List<StockDto> convertToDtoList(List<Stock> stocks) {
         return stocks.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
-    private StockDto convertToDto(Stock stock) {
+    public StockDto convertToDto(Stock stock) {
         StockDto dto = new StockDto();
         dto.setId(stock.getId());
         dto.setSymbol(stock.getSymbol());
@@ -83,12 +81,12 @@ public class StockService {
         dto.setIndustry(stock.getIndustry());
         dto.setMarketCap(stock.getMarketCap());
         
-        // Calculate change amount and percentage
-        double changeAmount = stock.getPrice() - stock.getPreviousClose();
-        double changePercent = (changeAmount / stock.getPreviousClose()) * 100;
-        
-        dto.setChangeAmount(changeAmount);
-        dto.setChangePercent(changePercent);
+        double previousClose = stock.getPreviousClose();
+        if (previousClose != 0) {
+            double changeAmount = stock.getPrice() - previousClose;
+            dto.setChangeAmount(changeAmount);
+            dto.setChangePercent((changeAmount / previousClose) * 100);
+        }
         
         return dto;
     }

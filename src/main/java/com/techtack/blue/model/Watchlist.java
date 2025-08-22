@@ -4,14 +4,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -27,12 +26,12 @@ public class Watchlist {
     private LocalDateTime createdAt;
 
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
 
-    @ElementCollection
-    @CollectionTable(name = "watchlist_symbols", joinColumns = @JoinColumn(name = "watchlist_id"))
-    @Column(name = "symbol")
-    private List<String> symbols = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(name = "watchlist_stocks", joinColumns = @JoinColumn(name = "watchlist_id"), inverseJoinColumns = @JoinColumn(name = "stock_id"))
+    private List<Stock> stocks = new ArrayList<>();
 
     public Watchlist() {
         this.createdAt = LocalDateTime.now();
@@ -70,21 +69,29 @@ public class Watchlist {
         this.user = user;
     }
 
-    public List<String> getSymbols() {
-        return symbols;
+    public List<Stock> getStocks() {
+        return stocks;
     }
 
-    public void setSymbols(List<String> symbols) {
-        this.symbols = symbols;
+    public void setStocks(List<Stock> stocks) {
+        this.stocks = stocks;
     }
 
-    public void addSymbol(String symbol) {
-        if (!symbols.contains(symbol)) {
-            symbols.add(symbol);
+    public void addStock(Stock stock) {
+        if (!stocks.contains(stock)) {
+            stocks.add(stock);
         }
     }
 
-    public void removeSymbol(String symbol) {
-        symbols.remove(symbol);
+    public void removeStock(Stock stock) {
+        stocks.remove(stock);
+    }
+
+    public boolean containsStock(Stock stock) {
+        return stocks.contains(stock);
+    }
+
+    public boolean containsStockBySymbol(String symbol) {
+        return stocks.stream().anyMatch(stock -> stock.getSymbol().equals(symbol));
     }
 }
