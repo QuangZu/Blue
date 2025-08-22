@@ -37,8 +37,7 @@ public class TradingController {
         if (order.getOrderType() == null) {
             order.setOrderType(OrderType.NORMAL);
         }
-        
-        // Route to specific order placement method based on order type
+
         Order placedOrder;
         switch (order.getOrderType()) {
             case NORMAL:
@@ -70,8 +69,7 @@ public class TradingController {
         }
         return ResponseEntity.ok(placedOrder);
     }
-    
-    // Specific endpoints for each order type
+
     @PostMapping("/orders/normal")
     public ResponseEntity<Order> placeNormalOrder(@RequestBody Order order, @RequestParam("userId") Long userId) {
         return ResponseEntity.ok(tradingService.placeNormalOrder(order, userId));
@@ -118,8 +116,7 @@ public class TradingController {
         order.setOrderType(OrderType.STOP_LOSS_TAKE_PROFIT);
         return ResponseEntity.ok(tradingService.placeStopLossTakeProfitOrder(order, userId));
     }
-    
-    // Get orders by type
+
     @GetMapping("/orders/type/{type}")
     public ResponseEntity<List<Order>> getOrdersByType(
             @RequestParam("userId") Long userId,
@@ -132,8 +129,7 @@ public class TradingController {
             return ResponseEntity.badRequest().build();
         }
     }
-    
-    // Get orders by status and type
+
     @GetMapping("/orders/status/{status}/type/{type}")
     public ResponseEntity<List<Order>> getOrdersByStatusAndType(
             @RequestParam("userId") Long userId,
@@ -149,21 +145,18 @@ public class TradingController {
         }
     }
 
-    // Get all user's orders
     @GetMapping("/orders")
     public ResponseEntity<List<Order>> getUserOrders(
             @RequestParam("userId") Long userId) {
         return ResponseEntity.ok(tradingService.getUserOrders(userId));
     }
 
-    // Get open orders (pending status)
     @GetMapping("/orders/open")
     public ResponseEntity<List<Order>> getOpenOrders(
             @RequestParam("userId") Long userId) {
         return ResponseEntity.ok(tradingService.getOrdersByStatus(userId, OrderStatus.PENDING));
     }
 
-    // Cancel an order
     @PostMapping("/orders/{orderId}/cancel")
     public ResponseEntity<Void> cancelOrder(
             @RequestParam("userId") Long userId,

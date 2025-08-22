@@ -12,7 +12,7 @@ public class UserDtoMapper {
         userDto.setEmail(user.getEmail());
         userDto.setUsername(user.getUsername());
         userDto.setIdentification_card(user.getIdentification_card());
-        userDto.setLocation(user.getLocation());
+        userDto.setLocation(user.getAddress());
 
         return userDto;
     }
@@ -22,9 +22,9 @@ public class UserDtoMapper {
         user.setEmail(userDto.getEmail());
         user.setUsername(userDto.getUsername());
         user.setIdentification_card(userDto.getIdentification_card());
-        user.setLocation(userDto.getLocation());
+        user.setAddress(userDto.getLocation());
         user.setPassword(userDto.getPassword());
-        user.setMobile(userDto.getMobile());
+        user.setPhone_number(userDto.getMobile());
         user.setAccountBalance(userDto.getAccountBalance());
         user.setReq_user(userDto.isReq_user());
         user.setVerified(userDto.isVerified());

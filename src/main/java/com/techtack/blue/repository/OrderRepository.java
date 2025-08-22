@@ -3,6 +3,8 @@ package com.techtack.blue.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.techtack.blue.model.Order;
@@ -23,5 +25,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     List<Order> findByUserAndOrderType(User user, OrderType orderType);
     
-    List<Order> findByUserAndStatusAndOrderType(User user, OrderStatus status, OrderType orderType);
+    @Query("SELECT o FROM Order o WHERE o.user = :user AND o.status = :status AND o.orderType = :orderType")
+    List<Order> findByUserAndStatusAndOrderType(@Param("user") User user, @Param("status") OrderStatus status, @Param("orderType") OrderType orderType);
 }

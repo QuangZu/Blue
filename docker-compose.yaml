@@ -8,9 +8,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://dpg-d1n3iq6r433s73ba8kig-a.oregon-postgres.render.com:5432/blue_4pj5
-      - SPRING_DATASOURCE_USERNAME=blue_4pj5_user
-      - SPRING_DATASOURCE_PASSWORD=3u9ogl5kJ2zmyQnIFOw4S82mAr50ma3a
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dpg-d2e4fsadbo4c73emk2cg-a.oregon-postgres.render.com:5432/blue_r0op
+      - SPRING_DATASOURCE_USERNAME=blue_r0op_user
+      - SPRING_DATASOURCE_PASSWORD=qD6VX9gmwx7OMEqbIzfriJrY85dPuBvq
       - ALPHAVANTAGE_API_KEY=${ALPHAVANTAGE_API_KEY:-TW10G2S77NID2ZCA}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-default}
       - JPA_DDL_AUTO=${JPA_DDL_AUTO:-update}
@@ -25,9 +25,9 @@ services:
     container_name: postgres_blue
     image: postgres
     environment:
-      POSTGRES_USER: blue_4pj5_user
-      POSTGRES_PASSWORD: 3u9ogl5kJ2zmyQnIFOw4S82mAr50ma3a
-      POSTGRES_DB: blue_4pj5
+      POSTGRES_USER: blue_r0op_user
+      POSTGRES_PASSWORD: qD6VX9gmwx7OMEqbIzfriJrY85dPuBvq
+      POSTGRES_DB: blue_r0op
       PGDATA: /data/postgres
     volumes:
       - postgres:/data/postgres

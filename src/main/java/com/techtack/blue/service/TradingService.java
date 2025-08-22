@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.techtack.blue.dto.StockDto;
 import com.techtack.blue.exception.InsufficientFundsException;
 import com.techtack.blue.model.Order;
 import com.techtack.blue.model.Stock;
@@ -40,16 +41,28 @@ public class TradingService {
     @Autowired
     private TradingRepository tradingRepository;
 
+    @Autowired
+    private StockService stockService;
+
     @Transactional
     public Order placeOrder(Order order, Long userId) {
         // Validate user exists
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         
-        // Validate stock exists - find by symbol from the order
+        // Check if stock exists in database, if not fetch from API
         Stock stock = stockRepository.findBySymbol(order.getSymbol());
         if (stock == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Stock not found with symbol: " + order.getSymbol());
+            // Stock not in database, fetch from API and save
+            StockDto stockDto = stockService.getStockBySymbol(order.getSymbol());
+            if (stockDto == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Stock not found with symbol: " + order.getSymbol());
+            }
+            // Re-fetch the stock after it's been saved by the service
+            stock = stockRepository.findBySymbol(order.getSymbol());
+            if (stock == null) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save stock data");
+            }
         }
         
         // Set relationships
@@ -318,7 +331,6 @@ public class TradingService {
     public Order placeNormalOrder(Order order, Long userId) {
         order.setOrderType(OrderType.NORMAL);
         
-        // Normal orders don't require additional validation beyond basic order fields
         return placeOrder(order, userId);
     }
 }

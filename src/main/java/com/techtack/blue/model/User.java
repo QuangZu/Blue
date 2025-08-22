@@ -15,11 +15,14 @@ public class User {
     private Long id;
 
     private String username;
-    private String location;
+    private String address;
     private String email;
     private String password;
-    private String mobile;
+    private String phone_number;
+    private String date_of_birth;
     private String identification_card;
+    private String gender;
+    private String nationality;
     private double accountBalance;
     private boolean req_user;
     private boolean verified;
@@ -28,19 +31,27 @@ public class User {
     private String token;
     private double buyingPower = 0.0;
 
-    public User(Long id, String username, String location, String email, String password, String mobile, String identification_card, boolean req_user) {
-        this.id = id;
-        this.username = username;
-        this.location = location;
-        this.email = email;
-        this.password = password;
-        this.mobile = mobile;
-        this.identification_card = identification_card;
-        this.req_user = req_user;
-        this.buyingPower = 0.0;
+    public User() {
     }
 
-    public User() {
+    public User(Long id, String username, String address, String email, String password, String phone_number, String date_of_birth, String identification_card, String gender, String nationality, double accountBalance, boolean req_user, boolean verified, LocalDateTime verificationStartTime, LocalDateTime verificationEndTime, String token, double buyingPower) {
+        this.id = id;
+        this.username = username;
+        this.address = address;
+        this.email = email;
+        this.password = password;
+        this.phone_number = phone_number;
+        this.date_of_birth = date_of_birth;
+        this.identification_card = identification_card;
+        this.gender = gender;
+        this.nationality = nationality;
+        this.accountBalance = accountBalance;
+        this.req_user = req_user;
+        this.verified = verified;
+        this.verificationStartTime = verificationStartTime;
+        this.verificationEndTime = verificationEndTime;
+        this.token = token;
+        this.buyingPower = buyingPower;
     }
 
     public Long getId() {
@@ -59,12 +70,12 @@ public class User {
         this.username = username;
     }
 
-    public String getLocation() {
-        return location;
+    public String getAddress() {
+        return address;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getEmail() {
@@ -83,12 +94,20 @@ public class User {
         this.password = password;
     }
 
-    public String getMobile() {
-        return mobile;
+    public String getPhone_number() {
+        return phone_number;
     }
 
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
+    public void setPhone_number(String phone_number) {
+        this.phone_number = phone_number;
+    }
+
+    public String getDate_of_birth() {
+        return date_of_birth;
+    }
+
+    public void setDate_of_birth(String date_of_birth) {
+        this.date_of_birth = date_of_birth;
     }
 
     public String getIdentification_card() {
@@ -97,6 +116,22 @@ public class User {
 
     public void setIdentification_card(String identification_card) {
         this.identification_card = identification_card;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getNationality() {
+        return nationality;
+    }
+
+    public void setNationality(String nationality) {
+        this.nationality = nationality;
     }
 
     public double getAccountBalance() {

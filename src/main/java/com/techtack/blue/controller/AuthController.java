@@ -64,7 +64,7 @@ public class AuthController {
         newUser.setEmail(user.getEmail());
         newUser.setUsername(user.getUsername());
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
-        newUser.setMobile(user.getMobile());
+        newUser.setPhone_number(user.getPhone_number());
         newUser.setAccountBalance(0.0);
 
         newUser.setVerified(false);
@@ -123,6 +123,7 @@ public class AuthController {
             
             AuthResponse authResponse = new AuthResponse();
             authResponse.setJwt(token);
+            authResponse.setId(loggedInUser.getId());
             
             if (!loggedInUser.isVerified()) {
                 authResponse.setMessage("Login Success. Please verify your email to access all features.");

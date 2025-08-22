@@ -36,10 +36,12 @@ public class AppConfig {
                         .requestMatchers("/user-stocks/**").authenticated()
                         .requestMatchers("/watchlists/**").authenticated()
                         .requestMatchers("/users/**").authenticated()
+                        .requestMatchers("/settings/**").authenticated()
 
                         // Default behavior for other requests
                         .anyRequest().permitAll()
                 )
+                .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
                 .csrf().disable()
                 .headers().frameOptions().disable().and()
                 .cors().configurationSource(corsConfigurationSource()).and()

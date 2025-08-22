@@ -97,8 +97,8 @@ public class UserService {
         }
         
         // Check mobile
-        if (!userToUpdate.getMobile().equals(user.getMobile())) {
-            Optional<User> existingUserOpt = userRepository.findByMobile(user.getMobile());
+        if (!userToUpdate.getPhone_number().equals(user.getPhone_number())) {
+            Optional<User> existingUserOpt = userRepository.findByPhoneNumber(user.getPhone_number());
             if (existingUserOpt.isPresent() && !existingUserOpt.get().getId().equals(userId)) {
                 throw new UserException("User with mobile number already exists");
             }
@@ -115,8 +115,8 @@ public class UserService {
         userToUpdate.setEmail(user.getEmail());
         userToUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
         userToUpdate.setUsername(user.getUsername());
-        userToUpdate.setMobile(user.getMobile());
-        userToUpdate.setLocation(user.getLocation());
+        userToUpdate.setPhone_number(user.getPhone_number());
+        userToUpdate.setAddress(user.getAddress());
         userToUpdate.setIdentification_card(user.getIdentification_card());
         
         return userRepository.save(userToUpdate);

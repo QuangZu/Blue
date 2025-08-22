@@ -6,13 +6,15 @@ import lombok.Data;
 public class AuthResponse {
     private String jwt;
     private String message;
+    private Long id;
     
     public AuthResponse() {
     }
     
-    public AuthResponse(String jwt, String message) {
+    public AuthResponse(String jwt, String message, Long id) {
         this.jwt = jwt;
         this.message = message;
+        this.id = id;
     }
     
     public String getJwt() {
@@ -29,5 +31,13 @@ public class AuthResponse {
     
     public void setMessage(String message) {
         this.message = message;
+    }
+    
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
     }
 }
