@@ -8,6 +8,7 @@ import com.techtack.blue.model.Stock;
 import com.techtack.blue.service.UserService;
 import com.techtack.blue.repository.UserRepository;
 import com.techtack.blue.repository.StockRepository;
+import com.techtack.blue.service.NotificationService;
 
 import jakarta.validation.Valid;
 
@@ -27,6 +28,9 @@ public class UserController {
     private UserService userService;
     
     @Autowired
+    private NotificationService notificationService;
+    
+    @Autowired
     private UserRepository userRepository;
     
     @Autowired
@@ -40,17 +44,33 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<UserDto> updateUser(
-            @PathVariable Long userId,
-            @RequestBody UserDto userDto) throws UserException {
-
-        User user = UserDtoMapper.toUser(userDto);
-        User updatedUser = userService.updateUser(user, userId);
-        UserDto updatedUserDto = UserDtoMapper.toUserDto(updatedUser);
-
-        return new ResponseEntity<>(updatedUserDto, HttpStatus.OK);
+    public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody User user) {
+        try {
+            User updatedUser = userService.updateUser(user, userId);
+        
+        try {
+            String deviceToken = "user_device_token_" + userId;
+            notificationService.sendNotificationToDevice(
+                deviceToken,
+                "Profile Updated",
+                "Your profile information has been successfully updated.",
+                Map.of(
+                    "type", "profile_update",
+                    "user_id", userId.toString()
+                )
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to send profile update notification: " + e.getMessage());
+        }
+        
+            return ResponseEntity.ok(updatedUser);
+        } catch (UserException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
-
+    
     @DeleteMapping("/{userId}")
     public ResponseEntity<String> deleteUser(@Valid @PathVariable Long userId) throws UserException {
         userService.deleteUser(userId);

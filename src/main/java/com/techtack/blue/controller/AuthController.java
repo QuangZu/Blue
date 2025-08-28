@@ -1,16 +1,9 @@
 package com.techtack.blue.controller;
 
-import com.techtack.blue.config.JwtProvider;
-import com.techtack.blue.exception.UserException;
-import com.techtack.blue.model.User;
-import com.techtack.blue.model.SecureToken;
-import com.techtack.blue.repository.UserRepository;
-import com.techtack.blue.response.AuthResponse;
-import com.techtack.blue.service.CustomUserDetailsServiceImplementation;
-import com.techtack.blue.service.EmailService;
-import com.techtack.blue.service.SecureTokenService;
-import com.techtack.blue.service.UserService;
-import jakarta.validation.Valid;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +13,25 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
+import com.techtack.blue.config.JwtProvider;
+import com.techtack.blue.exception.UserException;
+import com.techtack.blue.model.SecureToken;
+import com.techtack.blue.model.User;
+import com.techtack.blue.repository.UserRepository;
+import com.techtack.blue.response.AuthResponse;
+import com.techtack.blue.service.CustomUserDetailsServiceImplementation;
+import com.techtack.blue.service.EmailService;
+import com.techtack.blue.service.SecureTokenService;
+import com.techtack.blue.service.UserService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")
@@ -66,18 +73,16 @@ public class AuthController {
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
         newUser.setPhone_number(user.getPhone_number());
         newUser.setAccountBalance(0.0);
-
+    
         newUser.setVerified(false);
         newUser.setVerificationStartTime(LocalDateTime.now());
         newUser.setVerificationEndTime(LocalDateTime.now().plusDays(1));
-
+    
         User savedUser = userRepository.save(newUser);
-
+    
         SecureToken secureToken = secureTokenService.createSecureToken(savedUser);
-
-        String verificationUrl = "http://localhost:8080/auth/verify?token=" + secureToken.getToken();
-
-        emailService.sendVerificationEmail(savedUser.getEmail(), verificationUrl);
+    
+        emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getUsername());
         
         AuthResponse authResponse = new AuthResponse();
         authResponse.setMessage("Registration successful. Please check your email to verify your account.");
@@ -155,19 +160,17 @@ public class AuthController {
             throw new UserException("Please request password reset first");
         }
         
-        // Check if the new password is the same as the old one using service layer
         if (userService.isPasswordMatching(newPassword, user)) {
             throw new UserException("New password must be different from the current password");
         }
         
         SecureToken verificationToken = secureTokenService.createSecureToken(user);
-        String verificationUrl = "http://localhost:8080/auth/verify-password-change?token=" + verificationToken.getToken();
         
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setVerified(false);
         userRepository.save(user);
         
-        emailService.sendPasswordChangeVerificationEmail(user.getEmail(), verificationUrl);
+        emailService.sendPasswordChangeVerificationEmail(user.getEmail(), user.getUsername());
         
         AuthResponse response = new AuthResponse();
         response.setMessage("Password change verification email sent. Please check your email.");
@@ -178,19 +181,18 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public ResponseEntity<AuthResponse> forgotPassword(@Valid @RequestBody Map<String, String> request) throws UserException {
         String email = request.get("email");
-
+    
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new UserException("User not found with email: " + email));
         
         user.setReq_user(true);
         userRepository.save(user);
-
-        SecureToken changepasswordToken = secureTokenService.createSecureToken(user);
-        String changepasswordUrl = "http://localhost:8080/auth/change-password?token=" + changepasswordToken.getToken();
-
+    
+        emailService.sendPasswordChangeVerificationEmail(user.getEmail(), user.getUsername());
+    
         AuthResponse response = new AuthResponse();
-        response.setMessage("Please enter your new password");
-
+        response.setMessage("Password reset email sent successfully");
+    
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
     

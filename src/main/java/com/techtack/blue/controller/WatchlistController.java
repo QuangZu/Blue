@@ -18,6 +18,8 @@ import com.techtack.blue.dto.StockDto;
 import com.techtack.blue.dto.WatchlistDto;
 import com.techtack.blue.exception.UserException;
 import com.techtack.blue.service.WatchlistService;
+import com.techtack.blue.service.NotificationService;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/watchlists")
@@ -25,12 +27,33 @@ public class WatchlistController {
 
     @Autowired
     private WatchlistService watchlistService;
+    
+    @Autowired
+    private NotificationService notificationService;
 
     @PostMapping
     public ResponseEntity<WatchlistDto> createWatchlist(
             @RequestBody WatchlistDto watchlistDto,
             @RequestParam("userId") Long userId) throws UserException {
-        return ResponseEntity.ok(watchlistService.createWatchlist(watchlistDto, userId));
+        WatchlistDto createdWatchlist = watchlistService.createWatchlist(watchlistDto, userId);
+        
+        try {
+            String deviceToken = "user_device_token_" + userId;
+            notificationService.sendNotificationToDevice(
+                deviceToken,
+                "Watchlist Created",
+                String.format("Your watchlist '%s' has been created successfully.", createdWatchlist.getName()),
+                Map.of(
+                    "type", "watchlist_created",
+                    "watchlist_id", createdWatchlist.getId().toString(),
+                    "watchlist_name", createdWatchlist.getName()
+                )
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to send watchlist creation notification: " + e.getMessage());
+        }
+        
+        return ResponseEntity.ok(createdWatchlist);
     }
 
     @GetMapping
@@ -67,7 +90,26 @@ public class WatchlistController {
             @PathVariable Long watchlistId,
             @RequestParam Long stockId,
             @RequestParam Long userId) {
-        return ResponseEntity.ok(watchlistService.addStockToWatchlistById(watchlistId, stockId, userId));
+        WatchlistDto updatedWatchlist = watchlistService.addStockToWatchlistById(watchlistId, stockId, userId);
+        
+        // Send stock addition notification
+        try {
+            String deviceToken = "user_device_token_" + userId;
+            notificationService.sendNotificationToDevice(
+                deviceToken,
+                "Stock Added to Watchlist",
+                String.format("A stock has been added to your watchlist '%s'.", updatedWatchlist.getName()),
+                Map.of(
+                    "type", "stock_added_to_watchlist",
+                    "watchlist_id", watchlistId.toString(),
+                    "stock_id", stockId.toString()
+                )
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to send stock addition notification: " + e.getMessage());
+        }
+        
+        return ResponseEntity.ok(updatedWatchlist);
     }
 
     @DeleteMapping("/{watchlistId}/stocks/{stockId}")

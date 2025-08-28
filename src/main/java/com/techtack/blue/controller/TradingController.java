@@ -20,6 +20,7 @@ import com.techtack.blue.model.order.OrderSide;
 import com.techtack.blue.model.order.OrderStatus;
 import com.techtack.blue.model.order.OrderType;
 import com.techtack.blue.repository.TradingRepository;
+import com.techtack.blue.service.NotificationService;
 import com.techtack.blue.service.TradingService;
 
 @RestController
@@ -31,13 +32,31 @@ public class TradingController {
     
     @Autowired
     private TradingRepository tradingRepository;
-
+    
+    @Autowired
+    private NotificationService notificationService;
+    
     @PostMapping("/orders")
     public ResponseEntity<Order> placeOrder(@RequestBody Order order, @RequestParam("userId") Long userId) {
         if (order.getOrderType() == null) {
             order.setOrderType(OrderType.NORMAL);
         }
         Order placedOrder = tradingService.placeOrder(order, userId);
+        
+        try {
+            String deviceToken = "user_device_token_" + userId;
+            String action = placedOrder.getOrderSide().getDisplayName();
+            notificationService.sendTradingNotification(
+                deviceToken,
+                placedOrder.getSymbol(),
+                action,
+                placedOrder.getQuantity(),
+                placedOrder.getPrice() != null ? placedOrder.getPrice() : placedOrder.getMarketPrice()
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to send order notification: " + e.getMessage());
+        }
+        
         return ResponseEntity.ok(placedOrder);
     }
 
@@ -50,6 +69,21 @@ public class TradingController {
             OrderType type = OrderType.valueOf(orderType.toUpperCase().replace("-", "_"));
             order.setOrderType(type);
             Order placedOrder = tradingService.placeOrder(order, userId);
+            
+            try {
+                String deviceToken = "user_device_token_" + userId;
+                String action = placedOrder.getOrderSide().getDisplayName();
+                notificationService.sendTradingNotification(
+                    deviceToken,
+                    placedOrder.getSymbol(),
+                    action,
+                    placedOrder.getQuantity(),
+                    placedOrder.getPrice() != null ? placedOrder.getPrice() : placedOrder.getMarketPrice()
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to send order notification: " + e.getMessage());
+            }
+            
             return ResponseEntity.ok(placedOrder);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
@@ -112,7 +146,35 @@ public class TradingController {
     public ResponseEntity<Void> cancelOrder(
             @RequestParam("userId") Long userId,
             @PathVariable Long orderId) {
+        
+        Order orderToCancel = tradingService.getUserOrders(userId).stream()
+                .filter(order -> order.getId().equals(orderId))
+                .findFirst()
+                .orElse(null);
+        
         tradingService.cancelOrder(orderId, userId);
+        
+        if (orderToCancel != null) {
+            try {
+                String deviceToken = "user_device_token_" + userId;
+                notificationService.sendNotificationToDevice(
+                    deviceToken,
+                    "Order Cancelled",
+                    String.format("Your %s order for %d shares of %s has been cancelled",
+                        orderToCancel.getOrderSide().getDisplayName(),
+                        orderToCancel.getQuantity(),
+                        orderToCancel.getSymbol()),
+                    Map.of(
+                        "type", "order_cancellation",
+                        "order_id", orderId.toString(),
+                        "stock_symbol", orderToCancel.getSymbol()
+                    )
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to send cancellation notification: " + e.getMessage());
+            }
+        }
+        
         return ResponseEntity.noContent().build();
     }
 
