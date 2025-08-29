@@ -82,7 +82,7 @@ public class AuthController {
     
         SecureToken secureToken = secureTokenService.createSecureToken(savedUser);
     
-        emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getUsername());
+        emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getUsername(), secureToken.getToken());
         
         AuthResponse authResponse = new AuthResponse();
         authResponse.setMessage("Registration successful. Please check your email to verify your account.");
@@ -170,7 +170,7 @@ public class AuthController {
         user.setVerified(false);
         userRepository.save(user);
         
-        emailService.sendPasswordChangeVerificationEmail(user.getEmail(), user.getUsername());
+        emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), verificationToken.getToken());
         
         AuthResponse response = new AuthResponse();
         response.setMessage("Password change verification email sent. Please check your email.");
@@ -188,7 +188,8 @@ public class AuthController {
         user.setReq_user(true);
         userRepository.save(user);
     
-        emailService.sendPasswordChangeVerificationEmail(user.getEmail(), user.getUsername());
+        SecureToken resetToken = secureTokenService.createSecureToken(user);
+        emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), resetToken.getToken());
     
         AuthResponse response = new AuthResponse();
         response.setMessage("Password reset email sent successfully");

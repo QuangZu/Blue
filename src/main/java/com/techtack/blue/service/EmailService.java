@@ -1,79 +1,86 @@
 package com.techtack.blue.service;
 
-import com.google.api.client.util.Value;
-import com.google.firebase.auth.ActionCodeSettings;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class EmailService {
     
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
-    private static final String CONTINUE_URL = "https://your-app-domain.com/verify-email";
     
-    // Email provider configuration
-    @Value("${sendgrid.api.key}")
-    private String sendGridApiKey;
+    private final JavaMailSender mailSender;
     
-    @Value("${sendgrid.from.email}")
+    @Value("${application.base.url}")
+    private String baseUrl;
+    
+    @Value("${mail.from.email}")
     private String fromEmail;
     
-    @Value("${sendgrid.from.name}")
+    @Value("${mail.from.name}")
     private String fromName;
     
-    public void sendVerificationEmail(String to, String username) {
+    public EmailService(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
+    
+    @PostConstruct
+    public void validateEmailConfiguration() {
+        if (fromEmail == null || fromEmail.isEmpty()) {
+            logger.warn("[EMAIL SERVICE] ⚠️ Email service not properly configured!");
+            logger.warn("[EMAIL SERVICE] Please configure the following environment variables:");
+            logger.warn("[EMAIL SERVICE]   - SPRING_MAIL_USERNAME (your email address)");
+            logger.warn("[EMAIL SERVICE]   - SPRING_MAIL_PASSWORD (app password for Gmail, not regular password)");
+            logger.warn("[EMAIL SERVICE]   - MAIL_FROM_EMAIL (sender email address)");
+            logger.warn("[EMAIL SERVICE] See EMAIL_SETUP_GUIDE.md for detailed instructions.");
+        } else {
+            logger.info("[EMAIL SERVICE] ✓ Email service configured with sender: {}", fromEmail);
+        }
+        
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            logger.warn("[EMAIL SERVICE] ⚠️ Base URL not configured! Using default localhost:8080");
+            logger.warn("[EMAIL SERVICE] Please set APPLICATION_BASE_URL environment variable");
+        } else {
+            logger.info("[EMAIL SERVICE] ✓ Base URL configured: {}", baseUrl);
+        }
+    }
+
+    public void sendVerificationEmail(String toEmail, String username, String token) {
         try {
-            ActionCodeSettings actionCodeSettings = ActionCodeSettings.builder()
-                .setUrl(CONTINUE_URL)
-                .setHandleCodeInApp(false)
-                .build();
-            
-            String verificationLink = FirebaseAuth.getInstance()
-                .generateEmailVerificationLink(to, actionCodeSettings);
-            
+            String verificationLink = buildVerificationLink("/auth/verify", "token", token);
             String emailContent = createVerificationEmailContent(verificationLink, username);
             
-            boolean emailSent = sendEmailViaSendGrid(to, "Please verify your email address", emailContent);
+            boolean emailSent = sendEmailViaSmtp(toEmail, "Please verify your email address", emailContent);
             
             if (emailSent) {
-                logger.info("[EMAIL SERVICE] Verification email sent successfully to: {}", to);
+                logger.info("[EMAIL SERVICE] Verification email sent successfully to: {}", toEmail);
             } else {
                 throw new RuntimeException("Failed to send verification email");
             }
             
-        } catch (FirebaseAuthException e) {
-            logger.error("[EMAIL SERVICE] Failed to generate verification link for {}: {}", to, e.getMessage());
-            throw new RuntimeException("Failed to generate email verification link", e);
+        } catch (Exception e) {
+            logger.error("[EMAIL SERVICE] Failed to send verification email to {}: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Failed to send verification email", e);
         }
     }
-
-    public void sendPasswordChangeVerificationEmail(String toEmail, String username) {
+    
+    public void sendPasswordResetEmail(String toEmail, String username, String token) {
         try {
-            ActionCodeSettings actionCodeSettings = ActionCodeSettings.builder()
-                .setUrl(CONTINUE_URL)
-                .setHandleCodeInApp(false)
-                .build();
+            String resetLink = buildVerificationLink("/auth/verify-password-change", "token", token);
+            String emailContent = createPasswordResetEmailContent(resetLink, username);
             
-            String passwordResetLink = FirebaseAuth.getInstance()
-                .generatePasswordResetLink(toEmail, actionCodeSettings);
-            
-            String emailContent = createPasswordChangeEmailContent(passwordResetLink, username);
-            
-            boolean emailSent = sendEmailViaSendGrid(toEmail, "Reset Your Password", emailContent);
+            boolean emailSent = sendEmailViaSmtp(toEmail, "Reset Your Password", emailContent);
             
             if (emailSent) {
                 logger.info("[EMAIL SERVICE] Password reset email sent successfully to: {}", toEmail);
@@ -81,39 +88,57 @@ public class EmailService {
                 throw new RuntimeException("Failed to send password reset email");
             }
             
-        } catch (FirebaseAuthException e) {
-            logger.error("[EMAIL SERVICE] Failed to generate password reset link for {}: {}", toEmail, e.getMessage());
-            throw new RuntimeException("Failed to generate password reset link", e);
+        } catch (Exception e) {
+            logger.error("[EMAIL SERVICE] Failed to send password reset email to {}: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Failed to send password reset email", e);
         }
     }
     
-    // Private method to handle actual email sending
-    private boolean sendEmailViaSendGrid(String toEmail, String subject, String htmlContent) {
+    private String buildVerificationLink(String endpoint, String paramName, String paramValue) {
+        String effectiveBaseUrl = (baseUrl != null && !baseUrl.isEmpty()) ? baseUrl : "http://localhost:8080";
+        return String.format("%s%s?%s=%s", effectiveBaseUrl, endpoint, paramName, paramValue);
+    }
+    
+    /**
+     * Handles actual email sending via SMTP
+     */
+    private boolean sendEmailViaSmtp(String toEmail, String subject, String htmlContent) {
+        validateEmailConfiguration();
+        
+        if (fromEmail == null || fromEmail.isEmpty()) {
+            logger.error("[EMAIL SERVICE] Email not configured properly. Please set MAIL_FROM_EMAIL environment variable.");
+            throw new RuntimeException("Email service not configured. Please configure SMTP settings.");
+        }
+        
         try {
-            Email from = new Email(fromEmail, fromName);
-            Email to = new Email(toEmail);
-            Content content = new Content("text/html", htmlContent);
-            Mail mail = new Mail(from, subject, to, content);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             
-            SendGrid sg = new SendGrid(sendGridApiKey);
-            Request request = new Request();
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
             
-            Response response = sg.api(request);
+            mailSender.send(message);
             
-            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                logger.info("[EMAIL SERVICE] Email sent successfully to: {}", toEmail);
-                return true;
-            } else {
-                logger.error("[EMAIL SERVICE] Failed to send email. Status: {}, Body: {}", 
-                    response.getStatusCode(), response.getBody());
-                return false;
+            logger.info("[EMAIL SERVICE] Email sent successfully to: {}", toEmail);
+            return true;
+            
+        } catch (MessagingException e) {
+            logger.error("[EMAIL SERVICE] MessagingException while sending email to {}: {}", toEmail, e.getMessage());
+            if (e.getMessage() != null && e.getMessage().contains("Authentication")) {
+                logger.error("[EMAIL SERVICE] Authentication failed. Please check your email credentials:");
+                logger.error("[EMAIL SERVICE] - For Gmail: Use App Password, not regular password");
+                logger.error("[EMAIL SERVICE] - Ensure 2FA is enabled for Gmail");
+                logger.error("[EMAIL SERVICE] - Check SPRING_MAIL_USERNAME and SPRING_MAIL_PASSWORD environment variables");
             }
-            
-        } catch (IOException e) {
-            logger.error("[EMAIL SERVICE] Error sending email to {}: {}", toEmail, e.getMessage());
+            return false;
+        } catch (Exception e) {
+            logger.error("[EMAIL SERVICE] Unexpected error sending email to {}: {}", toEmail, e.getMessage());
+            logger.error("[EMAIL SERVICE] Error type: {}", e.getClass().getName());
+            if (e.getCause() != null) {
+                logger.error("[EMAIL SERVICE] Root cause: {}", e.getCause().getMessage());
+            }
             return false;
         }
     }
@@ -134,6 +159,7 @@ public class EmailService {
                 "<p>Hello %s,</p>" +
                 "<p>Please click the link below to verify your email address:</p>" +
                 "<p><a href='%s'>Verify Email</a></p>" +
+                "<p>If you didn't create this account, please ignore this email.</p>" +
                 "</body></html>",
                 username != null ? username : "User",
                 verificationLink
@@ -141,13 +167,13 @@ public class EmailService {
         }
     }
     
-    private String createPasswordChangeEmailContent(String passwordResetLink, String username) {
+    private String createPasswordResetEmailContent(String resetLink, String username) {
         try {
             ClassPathResource resource = new ClassPathResource("templates/password-reset.html");
             String template = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             
             return template
-                .replace("{{resetLink}}", passwordResetLink)
+                .replace("{{resetLink}}", resetLink)
                 .replace("{{username}}", username != null ? username : "User");
         } catch (IOException e) {
             logger.error("Failed to load password reset template: {}", e.getMessage());
@@ -157,9 +183,10 @@ public class EmailService {
                 "<p>Hello %s,</p>" +
                 "<p>Click the link below to reset your password:</p>" +
                 "<p><a href='%s'>Reset Password</a></p>" +
+                "<p>If you didn't request this reset, please ignore this email.</p>" +
                 "</body></html>",
                 username != null ? username : "User",
-                passwordResetLink
+                resetLink
             );
         }
     }
