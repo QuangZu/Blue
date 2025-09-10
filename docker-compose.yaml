@@ -15,8 +15,11 @@ services:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-default}
       - JPA_DDL_AUTO=${JPA_DDL_AUTO:-update}
       - JPA_SHOW_SQL=${JPA_SHOW_SQL:-false}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - postgres
+      - redis
     networks:
       - postgres
     restart: unless-stopped
@@ -36,6 +39,18 @@ services:
     networks:
       - postgres
     restart: unless-stopped
+
+  redis:
+    container_name: redis_blue
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - postgres
+    restart: unless-stopped
+    command: redis-server --appendonly yes
 
   pgadmin:
     container_name: pgadmin_blue
@@ -70,3 +85,4 @@ networks:
 volumes:
   postgres:
   pgadmin:
+  redis_data:

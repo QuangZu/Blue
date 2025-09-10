@@ -75,8 +75,9 @@ public class GlobalExceptionHandler {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "error");
         response.put("message", "An unexpected error occurred");
-        response.put("error", "Please contact support if the problem persists");
+        response.put("error", ex.getMessage());
+        response.put("type", ex.getClass().getSimpleName());
         
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR); // 500 status code
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
