@@ -1,0 +1,88 @@
+services:
+  app:
+    image: quangzu/blue:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blue_app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dpg-d33oa33e5dus73ed65jg-a.oregon-postgres.render.com:5432/blue_ekij
+      - SPRING_DATASOURCE_USERNAME=blue
+      - SPRING_DATASOURCE_PASSWORD=CCGjDHDHXJ2l0B5lBYRwS0j5Y0xHiA4c
+      - ALPHAVANTAGE_API_KEY=${ALPHAVANTAGE_API_KEY:-TW10G2S77NID2ZCA}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-default}
+      - JPA_DDL_AUTO=${JPA_DDL_AUTO:-update}
+      - JPA_SHOW_SQL=${JPA_SHOW_SQL:-false}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  postgres:
+    container_name: postgres_blue
+    image: postgres
+    environment:
+      POSTGRES_USER: blue_r0op_user
+      POSTGRES_PASSWORD: qD6VX9gmwx7OMEqbIzfriJrY85dPuBvq
+      POSTGRES_DB: blue_r0op
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  redis:
+    container_name: redis_blue
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - postgres
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  pgadmin:
+    container_name: pgadmin_blue
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  # RabbitMQ service commented out since RabbitMQ functionality is disabled
+  # rabbitmq:
+  #   image: rabbitmq:4-management
+  #   container_name: rabbitmq_blue
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   networks:
+  #     - postgres
+  #   restart: unless-stopped
+
+networks:
+  postgres:
+    driver: bridge
+
+volumes:
+  postgres:
+  pgadmin:
+  redis_data:
