@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ForeignTradingDTO {
-    private String symbol;
+    private String code;
     private String companyName;
     private BigDecimal foreignBuyVolume;
     private BigDecimal foreignBuyValue;

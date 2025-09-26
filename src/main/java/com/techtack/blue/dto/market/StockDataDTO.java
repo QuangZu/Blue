@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StockDataDTO {
-    private String symbol;
+    private String code;
     private String companyName;
     private String exchange;
     private BigDecimal currentPrice;

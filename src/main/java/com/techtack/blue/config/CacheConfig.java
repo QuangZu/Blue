@@ -116,10 +116,7 @@ public class CacheConfig extends CachingConfigurerSupport {
             .withInitialCacheConfigurations(cacheConfigurations)
             .build();
     }
-    
-    /**
-     * Create a JSON serializer with proper configuration for Java 8 time types
-     */
+
     private GenericJackson2JsonRedisSerializer createJsonSerializer() {
         ObjectMapper objectMapper = new ObjectMapper();
         

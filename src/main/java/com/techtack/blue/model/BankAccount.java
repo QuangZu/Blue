@@ -33,5 +33,53 @@ public class BankAccount {
     
     private LocalDateTime createdAt = LocalDateTime.now();
     
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public void setAccountHolderName(String accountHolderName) {
+        this.accountHolderName = accountHolderName;
+    }
+
+    public void setPrimary(boolean primary) {
+        isPrimary = primary;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public String getAccountHolderName() {
+        return accountHolderName;
+    }
+
+    public boolean isPrimary() {
+        return isPrimary;
+    }
+
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public User getUser() {
+        return user;
+    }
 }

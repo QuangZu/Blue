@@ -3,6 +3,7 @@ package com.techtack.blue.model;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import com.techtack.blue.model.Stock;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -91,7 +92,7 @@ public class Watchlist {
         return stocks.contains(stock);
     }
 
-    public boolean containsStockBySymbol(String symbol) {
-        return stocks.stream().anyMatch(stock -> stock.getSymbol().equals(symbol));
+    public boolean containsStockByCode(String code) {
+        return stocks.stream().anyMatch(stock -> stock.getCode().equals(code));
     }
 }

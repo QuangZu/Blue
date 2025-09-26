@@ -29,4 +29,36 @@ public class SecureToken {
 
     @ManyToOne
     private User user;
+
+    public String getToken() {
+        return token;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public LocalDateTime getExpiryAt() {
+        return expiryAt;
+    }
+
+    public void setExpiryAt(LocalDateTime expiryAt) {
+        this.expiryAt = expiryAt;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }

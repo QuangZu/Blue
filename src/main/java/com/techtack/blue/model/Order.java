@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import com.techtack.blue.model.order.OrderSide;
 import com.techtack.blue.model.order.OrderStatus;
 import com.techtack.blue.model.order.OrderType;
+import com.techtack.blue.model.Stock;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -39,7 +40,7 @@ public class Order {
     @JoinColumn(name = "stock_id", nullable = false)
     private Stock stock;
     
-    private String symbol;
+    private String code;
     
     @Min(0)
     @Column(nullable = false)
@@ -112,12 +113,12 @@ public class Order {
         this.stock = stock;
     }
 
-    public String getSymbol() {
-        return symbol;
+    public String getCode() {
+        return code;
     }
 
-    public void setSymbol(String symbol) {
-        this.symbol = symbol;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public Integer getQuantity() {

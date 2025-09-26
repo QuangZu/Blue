@@ -48,7 +48,7 @@ public class TradingController {
             String action = placedOrder.getOrderSide().getDisplayName();
             notificationService.sendTradingNotification(
                 deviceToken,
-                placedOrder.getSymbol(),
+                placedOrder.getCode(),
                 action,
                 placedOrder.getQuantity(),
                 placedOrder.getPrice() != null ? placedOrder.getPrice() : placedOrder.getMarketPrice()
@@ -75,7 +75,7 @@ public class TradingController {
                 String action = placedOrder.getOrderSide().getDisplayName();
                 notificationService.sendTradingNotification(
                     deviceToken,
-                    placedOrder.getSymbol(),
+                    placedOrder.getCode(),
                     action,
                     placedOrder.getQuantity(),
                     placedOrder.getPrice() != null ? placedOrder.getPrice() : placedOrder.getMarketPrice()
@@ -163,11 +163,11 @@ public class TradingController {
                     String.format("Your %s order for %d shares of %s has been cancelled",
                         orderToCancel.getOrderSide().getDisplayName(),
                         orderToCancel.getQuantity(),
-                        orderToCancel.getSymbol()),
+                        orderToCancel.getCode()),
                     Map.of(
                         "type", "order_cancellation",
                         "order_id", orderId.toString(),
-                        "stock_symbol", orderToCancel.getSymbol()
+                        "stock_symbol", orderToCancel.getCode()
                     )
                 );
             } catch (Exception e) {
@@ -205,11 +205,11 @@ public class TradingController {
         return ResponseEntity.ok(tradingRepository.findByAccountId(accountId));
     }
 
-    @GetMapping("/tradings/symbol/{symbol}")
-    public ResponseEntity<List<Trading>> getTradingRecordsBySymbol(
+    @GetMapping("/tradings/code/{code}")
+    public ResponseEntity<List<Trading>> getTradingRecordsByCode(
             @RequestParam("accountId") String accountId,
-            @PathVariable String symbol) {
-        return ResponseEntity.ok(tradingRepository.findByAccountIdAndSymbol(accountId, symbol));
+            @PathVariable String code) {
+        return ResponseEntity.ok(tradingRepository.findByAccountIdAndCode(accountId, code));
     }
 
     @GetMapping("/tradings/type/{orderType}")

@@ -5,15 +5,17 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.techtack.blue.dto.StockDto;
+import com.techtack.blue.service.stock.StockService;
+import com.techtack.blue.model.Stock;
+import com.techtack.blue.dto.stock.ThongTinCoBanDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.techtack.blue.dto.StockDto;
 import com.techtack.blue.exception.InsufficientFundsException;
 import com.techtack.blue.model.Order;
-import com.techtack.blue.model.Stock;
 import com.techtack.blue.model.Trading;
 import com.techtack.blue.model.User;
 import com.techtack.blue.model.order.OrderSide;
@@ -29,41 +31,47 @@ import jakarta.transaction.Transactional;
 @Service
 public class TradingService {
 
-    @Autowired
-    private OrderRepository orderRepository;
-    
-    @Autowired
-    private StockRepository stockRepository;
-    
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private TradingRepository tradingRepository;
+    private final OrderRepository orderRepository;
+    private final StockRepository stockRepository;
+    private final UserRepository userRepository;
+    private final TradingRepository tradingRepository;
+    private final StockService stockService;
 
     @Autowired
-    private StockService stockService;
+    public TradingService(OrderRepository orderRepository, StockRepository stockRepository, UserRepository userRepository, TradingRepository tradingRepository, StockService stockService) {
+        this.orderRepository = orderRepository;
+        this.stockRepository = stockRepository;
+        this.userRepository = userRepository;
+        this.tradingRepository = tradingRepository;
+        this.stockService = stockService;
+    }
 
     @Transactional
     public Order placeOrder(Order order, Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         
-        Stock stock = stockRepository.findBySymbol(order.getSymbol());
+        Stock stock = stockRepository.findByCode(order.getCode()).orElse(null);
         if (stock == null) {
-            StockDto stockDto = stockService.getStockBySymbol(order.getSymbol());
-            if (stockDto == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Stock not found with symbol: " + order.getSymbol());
+            Optional<StockDto> basicInfoOptional = stockService.getStockByCode(order.getCode());
+            if (!basicInfoOptional.isPresent()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Stock not found with code: " + order.getCode());
             }
-            stock = stockRepository.findBySymbol(order.getSymbol());
+            
+            StockDto basicInfo = basicInfoOptional.get();
+
+            stock = stockRepository.findByCode(basicInfo.getCode()).orElse(null);
             if (stock == null) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save stock data");
+                stock = new Stock();
+                stock.setCode(basicInfo.getCode());
+                stock.setName(basicInfo.getName());
+                stock = stockRepository.save(stock);
             }
         }
         
         order.setUser(user);
         order.setStock(stock);
-        order.setSymbol(stock.getSymbol());
+        order.setCode(stock.getCode());
         order.setEntryDate(LocalDate.now());
         order.setEntryTime(LocalTime.now());
         
@@ -146,7 +154,7 @@ public class TradingService {
     
     private void createTradingFromOrder(Order order) {
         Trading trading = new Trading();
-        trading.setSymbol(order.getStock().getSymbol());
+        trading.setCode(order.getStock().getCode());
         trading.setAccountId(order.getUser().getId().toString());
         trading.setOrder(order);
         trading.setQuantity(order.getQuantity().doubleValue());

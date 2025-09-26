@@ -51,6 +51,62 @@ public class DepositTransaction {
     private LocalDateTime createdAt = LocalDateTime.now();
     
     private LocalDateTime completedAt;
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    public void setTransactionReference(String transactionReference) {
+        this.transactionReference = transactionReference;
+    }
+
+    public void setBankAccount(BankAccount bankAccount) {
+        this.bankAccount = bankAccount;
+    }
+
+    public void setDepositMethod(DepositMethod depositMethod) {
+        this.depositMethod = depositMethod;
+    }
+
+    public void setStatus(TransactionStatus status) {
+        this.status = status;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public void setQrCode(String qrCode) {
+        this.qrCode = qrCode;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public TransactionStatus getStatus() {
+        return status;
+    }
+
+    public DepositMethod getDepositMethod() {
+        return depositMethod;
+    }
+
+    public String getTransactionReference() {
+        return transactionReference;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
     
     public enum DepositMethod {
         BANK_TRANSFER,

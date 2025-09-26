@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StockImpactDTO {
-    private String symbol;
+    private String code;
     private String companyName;
     private BigDecimal currentPrice;
     private BigDecimal changePercent;

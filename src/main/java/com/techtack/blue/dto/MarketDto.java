@@ -51,4 +51,36 @@ public class MarketDto {
     
     // Additional data as string (JSON)
     private String additionalData;
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setValue(Double value) {
+        this.value = value;
+    }
+
+    public void setChange(Double change) {
+        this.change = change;
+    }
+
+    public void setChangePercent(Double changePercent) {
+        this.changePercent = changePercent;
+    }
+
+    public void setVolume(Long volume) {
+        this.volume = volume;
+    }
+
+    public void setLastUpdated(LocalDateTime lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }

@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AlphaVantageConfig {
-    
-    @Value("${alphavantage.api.key}")
+public class APIStockConfig {
+
+    @Value("${stock.api.key}")
     private String apiKey;
-    
-    @Value("${alphavantage.api.url}")
+
+    @Value("${stock.api.base}")
     private String baseUrl;
 
     public String getApiKey() {

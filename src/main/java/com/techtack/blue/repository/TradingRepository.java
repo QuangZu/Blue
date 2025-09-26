@@ -36,9 +36,9 @@ public interface TradingRepository extends JpaRepository<Trading, Long> {
     List<Trading> findByOrderSide(OrderSide orderSide);
     List<Trading> findByAccountIdAndOrderSide(String accountId, OrderSide orderSide);
     
-    // Find by symbol
-    List<Trading> findBySymbol(String symbol);
-    List<Trading> findByAccountIdAndSymbol(String accountId, String symbol);
+    // Find by code (was incorrectly named as symbol)
+    List<Trading> findByCode(String code);
+    List<Trading> findByAccountIdAndCode(String accountId, String code);
     
     // Complex queries
     List<Trading> findByAccountIdAndStatusAndOrderType(String accountId, OrderStatus status, OrderType orderType);

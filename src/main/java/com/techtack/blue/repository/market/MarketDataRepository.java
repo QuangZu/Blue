@@ -18,19 +18,19 @@ import com.techtack.blue.model.market.MarketData;
 public interface MarketDataRepository extends JpaRepository<MarketData, Long> {
 
     @Query("SELECT md FROM MarketData md " +
-           "WHERE md.symbol.symbol = :symbol " +
+           "WHERE md.stock.code = :code " +
            "ORDER BY md.tradingTime DESC")
-    Optional<MarketData> findLatestBySymbol(@Param("symbol") String symbol);
+    Optional<MarketData> findLatestBySymbol(@Param("code") String code);
     
     @Query("SELECT md FROM MarketData md " +
-           "WHERE md.symbol.exchange = :exchange " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol)")
+           "WHERE md.stock.san = :exchange " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock)")
     List<MarketData> findLatestByExchange(@Param("exchange") String exchange);
     
     // Note: This query is commented out because Symbol entity's relationship to Industry needs to be properly configured
     // @Query("SELECT md FROM MarketData md " +
-    //        "WHERE md.symbol.industry.id = :industryId " +
-    //        "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol)")
+    //        "WHERE md.stock.industry.id = :industryId " +
+    //        "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock)")
     // List<MarketData> findByIndustryId(@Param("industryId") Long industryId);
     
     default List<MarketData> findByIndustryId(Long industryId) {
@@ -39,46 +39,46 @@ public interface MarketDataRepository extends JpaRepository<MarketData, Long> {
     
     @Query("SELECT md FROM MarketData md " +
            "WHERE md.changePercent > 0 " +
-           "AND (:exchange IS NULL OR md.symbol.exchange = :exchange) " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol) " +
+           "AND (:exchange IS NULL OR md.stock.san = :exchange) " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock) " +
            "ORDER BY md.changePercent DESC")
     List<MarketData> findTopGainers(@Param("exchange") String exchange, Pageable pageable);
     
     @Query("SELECT md FROM MarketData md " +
            "WHERE md.changePercent < 0 " +
-           "AND (:exchange IS NULL OR md.symbol.exchange = :exchange) " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol) " +
+           "AND (:exchange IS NULL OR md.stock.san = :exchange) " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock) " +
            "ORDER BY md.changePercent ASC")
     List<MarketData> findTopLosers(@Param("exchange") String exchange, Pageable pageable);
     
     @Query("SELECT md FROM MarketData md " +
-           "WHERE (:exchange IS NULL OR md.symbol.exchange = :exchange) " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol) " +
+           "WHERE (:exchange IS NULL OR md.stock.san = :exchange) " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock) " +
            "ORDER BY md.volume DESC")
     List<MarketData> findTopVolume(@Param("exchange") String exchange, Pageable pageable);
     
     @Query("SELECT md FROM MarketData md " +
-           "WHERE (:exchange IS NULL OR md.symbol.exchange = :exchange) " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol) " +
+           "WHERE (:exchange IS NULL OR md.stock.san = :exchange) " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock) " +
            "ORDER BY md.value DESC")
     List<MarketData> findTopValue(@Param("exchange") String exchange, Pageable pageable);
     
     @Query("SELECT md FROM MarketData md " +
            "WHERE md.foreignNetValue > 0 " +
-           "AND (:exchange IS NULL OR md.symbol.exchange = :exchange) " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol) " +
+           "AND (:exchange IS NULL OR md.stock.san = :exchange) " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock) " +
            "ORDER BY md.foreignNetValue DESC")
     List<MarketData> findTopForeignBuy(@Param("exchange") String exchange, Pageable pageable);
     
     @Query("SELECT md FROM MarketData md " +
            "WHERE md.foreignNetValue < 0 " +
-           "AND (:exchange IS NULL OR md.symbol.exchange = :exchange) " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol) " +
+           "AND (:exchange IS NULL OR md.stock.san = :exchange) " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock) " +
            "ORDER BY md.foreignNetValue ASC")
     List<MarketData> findTopForeignSell(@Param("exchange") String exchange, Pageable pageable);
     
     @Query("SELECT SUM(md.value) FROM MarketData md " +
-           "WHERE md.symbol.exchange = :exchange " +
+           "WHERE md.stock.san = :exchange " +
            "AND DATE(md.tradingTime) = :date")
     BigDecimal calculateTotalMarketValue(@Param("exchange") String exchange, @Param("date") LocalDate date);
     
@@ -91,34 +91,34 @@ public interface MarketDataRepository extends JpaRepository<MarketData, Long> {
     
     @Query("SELECT md FROM MarketData md " +
            "WHERE md.currentPrice = md.ceilingPrice " +
-           "AND (:exchange IS NULL OR md.symbol.exchange = :exchange) " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol)")
-    List<MarketData> findsymbolsAtCeiling(@Param("exchange") String exchange);
+           "AND (:exchange IS NULL OR md.stock.san = :exchange) " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock)")
+    List<MarketData> findSymbolsAtCeiling(@Param("exchange") String exchange);
     
     @Query("SELECT md FROM MarketData md " +
            "WHERE md.currentPrice = md.floorPrice " +
-           "AND (:exchange IS NULL OR md.symbol.exchange = :exchange) " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol)")
-    List<MarketData> findsymbolsAtFloor(@Param("exchange") String exchange);
+           "AND (:exchange IS NULL OR md.stock.san = :exchange) " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock)")
+    List<MarketData> findSymbolsAtFloor(@Param("exchange") String exchange);
     
     @Query("SELECT md FROM MarketData md " +
-           "WHERE md.symbol.symbol = :symbol " +
+           "WHERE md.stock.code = :code " +
            "AND md.tradingTime BETWEEN :startTime AND :endTime " +
            "ORDER BY md.tradingTime ASC")
-    List<MarketData> findHistoricalData(@Param("symbol") String symbol, 
+    List<MarketData> findHistoricalData(@Param("code") String code, 
                                         @Param("startTime") LocalDateTime startTime, 
                                         @Param("endTime") LocalDateTime endTime);
     
-    @Query("SELECT md.symbol.industry.industryCode, AVG(md.changePercent) " +
+    @Query("SELECT md.stock.industry.industryCode, AVG(md.changePercent) " +
            "FROM MarketData md " +
-           "WHERE md.symbol.industry IS NOT NULL " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol) " +
-           "GROUP BY md.symbol.industry.industryCode")
+           "WHERE md.stock.industry IS NOT NULL " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock) " +
+           "GROUP BY md.stock.industry.industryCode")
     List<Object[]> calculateSectorPerformance();
     
     @Query("SELECT md FROM MarketData md " +
-           "WHERE (:exchange IS NULL OR md.symbol.exchange = :exchange) " +
-           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.symbol = md.symbol) " +
-           "ORDER BY (md.volume / NULLIF(md.symbol.outstandingShares, 0)) DESC")
-    List<MarketData> findMostActivesymbols(@Param("exchange") String exchange, Pageable pageable);
+           "WHERE (:exchange IS NULL OR md.stock.san = :exchange) " +
+           "AND md.tradingTime = (SELECT MAX(md2.tradingTime) FROM MarketData md2 WHERE md2.stock = md.stock) " +
+           "ORDER BY (md.volume / NULLIF(md.stock.soluongluuhanh, 0)) DESC")
+    List<MarketData> findMostActiveSymbols(@Param("exchange") String exchange, Pageable pageable);
 }

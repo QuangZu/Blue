@@ -1,15 +1,16 @@
 package com.techtack.blue.controller;
 
-import com.techtack.blue.dto.*;
+import com.techtack.blue.dto.StockDto;
+import com.techtack.blue.dto.UserDto;
 import com.techtack.blue.dto.mapper.UserDtoMapper;
 import com.techtack.blue.exception.UserException;
 import com.techtack.blue.model.User;
-import com.techtack.blue.model.Stock;
 import com.techtack.blue.service.UserService;
 import com.techtack.blue.service.DepositService;
 import com.techtack.blue.repository.UserRepository;
 import com.techtack.blue.repository.StockRepository;
 import com.techtack.blue.service.NotificationService;
+import com.techtack.blue.service.stock.StockService;
 
 import jakarta.validation.Valid;
 
@@ -39,6 +40,9 @@ public class UserController {
     
     @Autowired
     private DepositService depositService;
+
+    @Autowired
+    private StockService stockService;
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserDto> getUserById(@Valid @PathVariable Long userId) throws UserException {
@@ -80,15 +84,18 @@ public class UserController {
         userService.deleteUser(userId);
         return new ResponseEntity<>("User Deleted", HttpStatus.OK);
     }
-    
-    @GetMapping("/{userId}/balance")
-    public ResponseEntity<Map<String, Object>> checkBalanceSufficiency(@PathVariable Long userId, @RequestParam String symbol, @RequestParam int quantity) throws UserException {
-        User user = userService.findUserById(userId);
-        Stock stock = stockRepository.findBySymbol(symbol);
 
-        double totalCost = stock.getPrice() * quantity;
+    @GetMapping("/{userId}/balance")
+    public ResponseEntity<Map<String, Object>> checkBalanceSufficiency(@PathVariable Long userId, @RequestParam String code, @RequestParam int quantity) throws UserException {
+        User user = userService.findUserById(userId);
+        // Stock stock = stockRepository.findByCode(code);
+
+        StockDto stockDto = stockService.getCurrentPrice(code);
+        Double currentPrice = stockDto != null ? stockDto.getPrice() : 0.0;
+
+        double totalCost = currentPrice * quantity;
         boolean sufficientFunds = user.getAccountBalance() >= totalCost;
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("accountBalance", user.getAccountBalance());
         response.put("buyingPower", user.getBuyingPower());

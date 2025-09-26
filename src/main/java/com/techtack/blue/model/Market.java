@@ -2,6 +2,7 @@ package com.techtack.blue.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import com.techtack.blue.model.Stock;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

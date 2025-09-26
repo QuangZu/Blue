@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import com.techtack.blue.model.Stock;
 
 @Entity
 @Table(name = "market_data", indexes = {
@@ -24,7 +25,7 @@ public class MarketData {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stock_id", nullable = false)
-    private Symbol symbol;
+    private Stock stock;
     
     @Column(precision = 12, scale = 2, nullable = false)
     private BigDecimal openPrice;

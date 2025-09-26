@@ -25,7 +25,7 @@ public class PortfolioDTO {
     @Data
     @Builder
     public static class PortfolioHoldingDTO {
-        private String symbol;
+        private String code;
         private String companyName;
         private Integer totalQuantity;
         private Integer sellableQuantity;

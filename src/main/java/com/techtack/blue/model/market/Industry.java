@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import com.techtack.blue.model.Stock;
 import java.util.List;
 
 @Entity
@@ -45,7 +46,7 @@ public class Industry {
     
     @OneToMany(mappedBy = "industry", fetch = FetchType.LAZY)
     @Builder.Default
-    private List<Symbol> symbols = new ArrayList<>();
+    private List<Stock> symbols = new ArrayList<>();
     
     // Calculated fields for market snapshot
     @Column(precision = 18, scale = 2)

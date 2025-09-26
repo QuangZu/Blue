@@ -15,4 +15,24 @@ public class DepositResponse {
     private Double newBuyingPower;
     private LocalDateTime createdAt;
     private String message;
+
+    public void setTransactionId(Long transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setDepositMethod(String depositMethod) {
+        this.depositMethod = depositMethod;
+    }
+
+    public void setTransactionReference(String transactionReference) {
+        this.transactionReference = transactionReference;
+    }
 }

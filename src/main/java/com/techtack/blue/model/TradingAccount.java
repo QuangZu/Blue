@@ -69,4 +69,220 @@ public class TradingAccount {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public void setAccountType(AccountType accountType) {
+        this.accountType = accountType;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
+
+    public void setPrimary(boolean primary) {
+        isPrimary = primary;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public AccountType getAccountType() {
+        return accountType;
+    }
+
+    public BigDecimal getTotalNAV() {
+        return totalNAV;
+    }
+
+    public void setTotalNAV(BigDecimal totalNAV) {
+        this.totalNAV = totalNAV;
+    }
+
+    public BigDecimal getTotalAssets() {
+        return totalAssets;
+    }
+
+    public void setTotalAssets(BigDecimal totalAssets) {
+        this.totalAssets = totalAssets;
+    }
+
+    public BigDecimal getCashBalance() {
+        return cashBalance;
+    }
+
+    public void setCashBalance(BigDecimal cashBalance) {
+        this.cashBalance = cashBalance;
+    }
+
+    public BigDecimal getBuyingPower() {
+        return buyingPower;
+    }
+
+    public void setBuyingPower(BigDecimal buyingPower) {
+        this.buyingPower = buyingPower;
+    }
+
+    public BigDecimal getWithdrawable() {
+        return withdrawable;
+    }
+
+    public void setWithdrawable(BigDecimal withdrawable) {
+        this.withdrawable = withdrawable;
+    }
+
+    public BigDecimal getRight_subscription() {
+        return right_subscription;
+    }
+
+    public void setRight_subscription(BigDecimal right_subscription) {
+        this.right_subscription = right_subscription;
+    }
+
+    public BigDecimal getStockNAV() {
+        return stockNAV;
+    }
+
+    public void setStockNAV(BigDecimal stockNAV) {
+        this.stockNAV = stockNAV;
+    }
+
+    public BigDecimal getFundNAV() {
+        return fundNAV;
+    }
+
+    public void setFundNAV(BigDecimal fundNAV) {
+        this.fundNAV = fundNAV;
+    }
+
+    public BigDecimal getInvestmentProductsNAV() {
+        return investmentProductsNAV;
+    }
+
+    public void setInvestmentProductsNAV(BigDecimal investmentProductsNAV) {
+        this.investmentProductsNAV = investmentProductsNAV;
+    }
+
+    public BigDecimal getT0buy_value() {
+        return t0buy_value;
+    }
+
+    public void setT0buy_value(BigDecimal t0buy_value) {
+        this.t0buy_value = t0buy_value;
+    }
+
+    public BigDecimal getT0sell_value() {
+        return t0sell_value;
+    }
+
+    public void setT0sell_value(BigDecimal t0sell_value) {
+        this.t0sell_value = t0sell_value;
+    }
+
+    public BigDecimal getT1buy_value() {
+        return t1buy_value;
+    }
+
+    public void setT1buy_value(BigDecimal t1buy_value) {
+        this.t1buy_value = t1buy_value;
+    }
+
+    public BigDecimal getT1sell_value() {
+        return t1sell_value;
+    }
+
+    public void setT1sell_value(BigDecimal t1sell_value) {
+        this.t1sell_value = t1sell_value;
+    }
+
+    public BigDecimal getUnmatched_buy_value() {
+        return unmatched_buy_value;
+    }
+
+    public void setUnmatched_buy_value(BigDecimal unmatched_buy_value) {
+        this.unmatched_buy_value = unmatched_buy_value;
+    }
+
+    public BigDecimal getUnmatched_sell_value() {
+        return unmatched_sell_value;
+    }
+
+    public void setUnmatched_sell_value(BigDecimal unmatched_sell_value) {
+        this.unmatched_sell_value = unmatched_sell_value;
+    }
+
+    public BigDecimal getAvailableAdvancedCash() {
+        return availableAdvancedCash;
+    }
+
+    public void setAvailableAdvancedCash(BigDecimal availableAdvancedCash) {
+        this.availableAdvancedCash = availableAdvancedCash;
+    }
+
+    public BigDecimal getCashDividend() {
+        return cashDividend;
+    }
+
+    public void setCashDividend(BigDecimal cashDividend) {
+        this.cashDividend = cashDividend;
+    }
+
+    public BigDecimal getLiabilities() {
+        return liabilities;
+    }
+
+    public void setLiabilities(BigDecimal liabilities) {
+        this.liabilities = liabilities;
+    }
+
+    public boolean isPrimary() {
+        return isPrimary;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

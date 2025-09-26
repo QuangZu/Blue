@@ -35,8 +35,7 @@ public class Trading {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    // Denormalized fields for performance and historical tracking
-    private String symbol;
+    private String code;
     private String accountId;
     
     @Min(0)
@@ -99,5 +98,205 @@ public class Trading {
     public Double getRemainingQuantity() {
         if (executedQuantity == null) return quantity;
         return quantity - executedQuantity;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
+    }
+
+    public Double getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Double quantity) {
+        this.quantity = quantity;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public Double getTriggerPrice() {
+        return triggerPrice;
+    }
+
+    public void setTriggerPrice(Double triggerPrice) {
+        this.triggerPrice = triggerPrice;
+    }
+
+    public Double getTrailingAmount() {
+        return trailingAmount;
+    }
+
+    public void setTrailingAmount(Double trailingAmount) {
+        this.trailingAmount = trailingAmount;
+    }
+
+    public Double getTakeProfitPrice() {
+        return takeProfitPrice;
+    }
+
+    public void setTakeProfitPrice(Double takeProfitPrice) {
+        this.takeProfitPrice = takeProfitPrice;
+    }
+
+    public Double getCutLossPrice() {
+        return cutLossPrice;
+    }
+
+    public void setCutLossPrice(Double cutLossPrice) {
+        this.cutLossPrice = cutLossPrice;
+    }
+
+    public Double getToler() {
+        return toler;
+    }
+
+    public void setToler(Double toler) {
+        this.toler = toler;
+    }
+
+    public OrderType getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(OrderType orderType) {
+        this.orderType = orderType;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public OrderSide getOrderSide() {
+        return orderSide;
+    }
+
+    public void setOrderSide(OrderSide orderSide) {
+        this.orderSide = orderSide;
+    }
+
+    public Double getMarketPrice() {
+        return marketPrice;
+    }
+
+    public void setMarketPrice(Double marketPrice) {
+        this.marketPrice = marketPrice;
+    }
+
+    public Long getTotalVolume() {
+        return totalVolume;
+    }
+
+    public void setTotalVolume(Long totalVolume) {
+        this.totalVolume = totalVolume;
+    }
+
+    public LocalDate getEffectiveDate() {
+        return effectiveDate;
+    }
+
+    public void setEffectiveDate(LocalDate effectiveDate) {
+        this.effectiveDate = effectiveDate;
+    }
+
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public LocalTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Double getBuyingPower() {
+        return buyingPower;
+    }
+
+    public void setBuyingPower(Double buyingPower) {
+        this.buyingPower = buyingPower;
+    }
+
+    public Double getMaxQuantity() {
+        return maxQuantity;
+    }
+
+    public void setMaxQuantity(Double maxQuantity) {
+        this.maxQuantity = maxQuantity;
+    }
+
+    public Double getExecutedQuantity() {
+        return executedQuantity;
+    }
+
+    public void setExecutedQuantity(Double executedQuantity) {
+        this.executedQuantity = executedQuantity;
+    }
+
+    public Double getExecutedPrice() {
+        return executedPrice;
+    }
+
+    public void setExecutedPrice(Double executedPrice) {
+        this.executedPrice = executedPrice;
+    }
+
+    public LocalTime getExecutedAt() {
+        return executedAt;
+    }
+
+    public void setExecutedAt(LocalTime executedAt) {
+        this.executedAt = executedAt;
+    }
+
+    public LocalDate getExecutedDate() {
+        return executedDate;
+    }
+
+    public void setExecutedDate(LocalDate executedDate) {
+        this.executedDate = executedDate;
     }
 }
